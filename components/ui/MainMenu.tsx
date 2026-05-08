@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore, SaveSlot } from "@/store/gameStore"
 import { DIFFICULTY_LABELS, DifficultyMode } from "@/types"
-import { BookOpen, Play, RotateCcw, Volume2, VolumeX } from "lucide-react"
+import { BookOpen, Play, RotateCcw, Volume2, VolumeX, Trash2 } from "lucide-react"
 
 const TAGLINE_PHRASES = [
   "Everyone is lying.",
@@ -18,6 +18,7 @@ export function MainMenu() {
   const [taglineIdx, setTaglineIdx] = useState(0)
   const [showSlots, setShowSlots] = useState(false)
   const [deletingSlot, setDeletingSlot] = useState<string | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Cycle taglines
@@ -30,6 +31,19 @@ export function MainMenu() {
 
   const activeSlots = saveSlots.filter((s) => s.status === "active")
   const completedSlots = saveSlots.filter((s) => s.status === "completed" || s.status === "replaying")
+
+  function handleResetProgress() {
+    if (!confirmReset) {
+      setConfirmReset(true)
+      // Auto-cancel after 4s if user doesn't confirm
+      setTimeout(() => setConfirmReset(false), 4000)
+      return
+    }
+    // Wipe all save slots from store (persisted to localStorage)
+    useGameStore.setState({ saveSlots: [] })
+    setConfirmReset(false)
+    setShowSlots(false)
+  }
 
   async function handleContinue(slot: SaveSlot) {
     // Re-fetch session from server
@@ -191,19 +205,67 @@ export function MainMenu() {
         </AnimatePresence>
 
         {/* Footer */}
-        <div className="mt-12 flex items-center gap-6 text-[#6B7280] text-xs">
-          <button
-            onClick={() => setAudioEnabled(!audio.enabled)}
-            className="flex items-center gap-2 hover:text-[#94A3B8] transition-colors p-2"
-            aria-label={audio.enabled ? "Mute audio" : "Enable audio"}
-          >
-            {audio.enabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-            <span className="tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.65rem" }}>
-              {audio.enabled ? "Sound On" : "Sound Off"}
-            </span>
-          </button>
-          <span className="opacity-40">•</span>
-          <span style={{ fontFamily: "var(--font-jetbrains)" }}>AI Interrogation Game</span>
+        <div className="mt-12 flex flex-col items-center gap-4">
+          <div className="flex items-center gap-6 text-[#6B7280] text-xs">
+            <button
+              onClick={() => setAudioEnabled(!audio.enabled)}
+              className="flex items-center gap-2 hover:text-[#94A3B8] transition-colors p-2"
+              aria-label={audio.enabled ? "Mute audio" : "Enable audio"}
+            >
+              {audio.enabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+              <span className="tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.65rem" }}>
+                {audio.enabled ? "Sound On" : "Sound Off"}
+              </span>
+            </button>
+            <span className="opacity-40">•</span>
+            <span style={{ fontFamily: "var(--font-jetbrains)" }}>AI Interrogation Game</span>
+          </div>
+
+          {/* Reset progress */}
+          {saveSlots.length > 0 && (
+            <AnimatePresence mode="wait">
+              {!confirmReset ? (
+                <motion.button
+                  key="reset-btn"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={handleResetProgress}
+                  className="flex items-center gap-2 text-[#6B7280]/60 hover:text-[#F43F5E] transition-colors text-xs p-1"
+                  style={{ fontFamily: "var(--font-jetbrains)" }}
+                >
+                  <Trash2 size={11} />
+                  Reset all progress
+                </motion.button>
+              ) : (
+                <motion.div
+                  key="reset-confirm"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex items-center gap-3"
+                >
+                  <span className="text-[#F43F5E] text-xs" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                    Erase all {saveSlots.length} save{saveSlots.length !== 1 ? "s" : ""}?
+                  </span>
+                  <button
+                    onClick={handleResetProgress}
+                    className="px-3 py-1 rounded text-xs bg-[#F43F5E] text-white hover:bg-[#e11d48] transition-colors"
+                    style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem", letterSpacing: "0.1em" }}
+                  >
+                    Yes, wipe it
+                  </button>
+                  <button
+                    onClick={() => setConfirmReset(false)}
+                    className="px-3 py-1 rounded text-xs border border-[#2A2A4A] text-[#6B7280] hover:text-[#94A3B8] transition-colors"
+                    style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem", letterSpacing: "0.1em" }}
+                  >
+                    Cancel
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       </motion.div>
 
