@@ -6,7 +6,13 @@ export function suspectPortraitUrl(
   era: string,
   seed: number | string
 ): string {
-  const prompt = `Portrait of ${name}. ${appearance}. ${era} setting. Film noir style, dramatic side lighting from single source, painterly illustration, dark background, cinematic, atmospheric, slightly desaturated. Face and shoulders only. No text.`
+  // Keep the prompt short and visual-only — long prompts trigger Pollinations 500s
+  const visualDesc = appearance
+    .split(",")
+    .slice(0, 3)
+    .map((s) => s.trim())
+    .join(", ")
+  const prompt = `Film noir portrait of ${name}, ${visualDesc}, dramatic side lighting, dark background, painterly, cinematic`
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=640&model=flux&seed=${seed}&nologo=true`
 }
 

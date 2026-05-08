@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { SuspectPublic, SuspectSessionState, MoodState } from "@/types"
 import { User } from "lucide-react"
@@ -31,9 +31,33 @@ interface SuspectPanelProps {
 export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectPanelProps) {
   const moodColor = MOOD_COLORS[mood]
   const exchangeCount = suspectState?.exchangeCount ?? 0
-  const moodProgress = Math.min(exchangeCount / 10, 1) // 0–1 for visual progress
+  const moodProgress = Math.min(exchangeCount / 100, 1) // 0–1 for visual progress
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reset state when suspect changes
+  useEffect(() => {
+    setImgLoaded(false)
+    setImgError(false)
+    setRetryCount(0)
+  }, [imageUrl])
+
+  // Cleanup timer on unmount
+  useEffect(() => () => { if (retryTimer.current) clearTimeout(retryTimer.current) }, [])
+
+  function handleImgError() {
+    if (retryCount < 3) {
+      // Retry after a delay — Pollinations has transient 500s
+      retryTimer.current = setTimeout(() => {
+        setImgError(false)  // clear error → triggers re-render → browser re-requests
+        setRetryCount((n) => n + 1)
+      }, 5000 + retryCount * 3000) // 5s, 8s, 11s
+    } else {
+      setImgError(true)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto">
@@ -59,7 +83,7 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 rounded-full border-2 border-[#2A2A4A] border-t-[#7C3AED] animate-spin" />
                   <p className="text-[#6B7280] text-xs" style={{ fontFamily: "var(--font-jetbrains)" }}>
-                    Generating portrait…
+                    {retryCount > 0 ? `Retrying… (${retryCount}/3)` : "Generating portrait…"}
                   </p>
                 </div>
               ) : (
@@ -70,14 +94,15 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
 
           {imageUrl && !imgError && (
             <motion.img
-              src={imageUrl}
+              key={`${imageUrl}-${retryCount}`}
+              src={retryCount > 0 ? `${imageUrl}&_r=${retryCount}` : imageUrl}
               alt={suspect.name}
               className="w-full h-full object-cover"
               style={{ opacity: imgLoaded ? 1 : 0 }}
               animate={{ filter: MOOD_FILTER[mood], opacity: imgLoaded ? 1 : 0 }}
               transition={{ duration: imgLoaded ? 1.5 : 0.8, ease: "easeInOut" }}
               onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
+              onError={handleImgError}
             />
           )}
         </motion.div>

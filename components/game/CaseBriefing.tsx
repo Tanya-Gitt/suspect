@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore } from "@/store/gameStore"
 import { DifficultyMode, DIFFICULTY_LABELS } from "@/types"
@@ -341,10 +341,30 @@ function FactsStep({ facts, onNext }: { facts: string[]; onNext: () => void }) {
   )
 }
 
-/** Small portrait thumbnail with shimmer-while-loading and user-icon fallback */
+/** Small portrait thumbnail with shimmer-while-loading, retry, and user-icon fallback */
 function SuspectThumb({ imageUrl, name }: { imageUrl?: string; name: string }) {
   const [loaded, setLoaded] = useState(false)
   const [errored, setErrored] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setLoaded(false); setErrored(false); setRetryCount(0)
+  }, [imageUrl])
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  function handleError() {
+    if (retryCount < 3) {
+      timer.current = setTimeout(() => {
+        setErrored(false)
+        setRetryCount((n) => n + 1)
+      }, 5000 + retryCount * 3000)
+    } else {
+      setErrored(true)
+    }
+  }
+
+  const src = imageUrl && retryCount > 0 ? `${imageUrl}&_r=${retryCount}` : imageUrl
 
   return (
     <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#2A2A4A] flex-shrink-0 relative bg-[#1F1F3A]">
@@ -352,21 +372,21 @@ function SuspectThumb({ imageUrl, name }: { imageUrl?: string; name: string }) {
       {(!loaded || errored) && (
         <div className="absolute inset-0 flex items-center justify-center">
           {imageUrl && !errored ? (
-            // Pulsing shimmer while Pollinations generates
             <div className="w-full h-full bg-gradient-to-br from-[#1F1F3A] via-[#2A2A4A] to-[#1F1F3A] animate-pulse" />
           ) : (
             <User size={20} className="text-[#6B7280]" />
           )}
         </div>
       )}
-      {imageUrl && !errored && (
+      {imageUrl && !errored && src && (
         <img
-          src={imageUrl}
+          key={`${imageUrl}-${retryCount}`}
+          src={src}
           alt={name}
           className="w-full h-full object-cover transition-opacity duration-500"
           style={{ opacity: loaded ? 1 : 0 }}
           onLoad={() => setLoaded(true)}
-          onError={() => setErrored(true)}
+          onError={handleError}
         />
       )}
     </div>

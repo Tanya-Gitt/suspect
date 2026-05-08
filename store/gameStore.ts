@@ -27,7 +27,8 @@ function deriveImageUrls(session: ClientSession): {
       numSeed + i + 1,
     )
   })
-  return { imageUrls, backgroundUrl: sceneBackgroundUrl(session.casePublic.setting, seed) }
+  const backgroundUrl = sceneBackgroundUrl(session.casePublic.setting, seed)
+  return { imageUrls, backgroundUrl }
 }
 
 // ─── UI Phases ────────────────────────────────────────────────────────────────
