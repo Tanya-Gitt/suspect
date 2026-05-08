@@ -69,13 +69,13 @@ export function AccusationScreen() {
       >
         <button
           onClick={() => setPhase("interrogation")}
-          className="p-2 hover:text-[#7C3AED] transition-colors"
+          className="p-2 hover:text-[#C9973E] transition-colors"
           disabled={submitting}
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-[#F43F5E] text-xs tracking-[0.3em] uppercase mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
+          <h2 className="text-[#B91C1C] text-xs tracking-[0.3em] uppercase mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
             ⚖ Final Accusation
           </h2>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-orbitron)" }}>
@@ -100,7 +100,7 @@ export function AccusationScreen() {
 
       {/* Suspects lineup */}
       <div className="flex flex-col gap-3 mb-8">
-        <p className="text-[#94A3B8] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)" }}>
+        <p className="text-[#9A8F7E] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)" }}>
           Select the killer
         </p>
 
@@ -117,8 +117,8 @@ export function AccusationScreen() {
               onClick={() => !submitting && setSelectedId(isSelected ? null : s.id)}
               className={`relative flex items-center gap-4 p-5 rounded-lg border text-left transition-all ${
                 isSelected
-                  ? "border-[#F43F5E] bg-[#F43F5E]/10"
-                  : "border-[#2A2A4A] bg-[#16162A] hover:border-[#F43F5E]/40"
+                  ? "border-[#B91C1C] bg-[#B91C1C]/10"
+                  : "border-[#222018] bg-[#141210] hover:border-[#B91C1C]/40"
               }`}
               aria-pressed={isSelected}
               disabled={submitting}
@@ -126,13 +126,13 @@ export function AccusationScreen() {
               {/* Portrait */}
               <div
                 className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2"
-                style={{ borderColor: isSelected ? "#F43F5E" : "#2A2A4A" }}
+                style={{ borderColor: isSelected ? "#B91C1C" : "#222018" }}
               >
                 {imageUrls[s.id] ? (
                   <img src={imageUrls[s.id]} alt={s.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-[#1F1F3A] flex items-center justify-center">
-                    <User size={24} className="text-[#6B7280]" />
+                  <div className="w-full h-full bg-[#1C1917] flex items-center justify-center">
+                    <User size={24} className="text-[#5A5248]" />
                   </div>
                 )}
               </div>
@@ -141,21 +141,21 @@ export function AccusationScreen() {
                 <p className="text-white font-bold mb-1" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.9rem" }}>
                   {s.name}
                 </p>
-                <p className="text-[#94A3B8] text-xs">{s.age} · {s.occupation}</p>
-                <p className="text-[#6B7280] text-xs mt-0.5 italic">{s.relationship}</p>
+                <p className="text-[#9A8F7E] text-xs">{s.age} · {s.occupation}</p>
+                <p className="text-[#5A5248] text-xs mt-0.5 italic">{s.relationship}</p>
               </div>
 
               <div className="flex flex-col items-end gap-2">
                 {interrogated ? (
                   <span className="text-[#22C55E] text-xs">✓ Interrogated</span>
                 ) : (
-                  <span className="text-[#6B7280] text-xs">○ Not questioned</span>
+                  <span className="text-[#5A5248] text-xs">○ Not questioned</span>
                 )}
                 {isSelected && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="w-5 h-5 rounded-full bg-[#F43F5E] flex items-center justify-center text-white text-xs"
+                    className="w-5 h-5 rounded-full bg-[#B91C1C] flex items-center justify-center text-white text-xs"
                   >
                     ✓
                   </motion.div>
@@ -173,7 +173,7 @@ export function AccusationScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mb-4 px-4 py-3 rounded border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] text-xs"
+            className="mb-4 px-4 py-3 rounded border border-[#B91C1C]/30 bg-[#B91C1C]/10 text-[#B91C1C] text-xs"
           >
             {error}
           </motion.div>
@@ -189,7 +189,7 @@ export function AccusationScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             onClick={() => setConfirming(true)}
-            className="w-full py-4 rounded-md text-sm tracking-[0.15em] uppercase border border-[#F43F5E]/50 text-[#F43F5E] hover:bg-[#F43F5E]/10 transition-all"
+            className="w-full py-4 rounded-md text-sm tracking-[0.15em] uppercase border border-[#B91C1C]/50 text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-all"
             style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
           >
             Accuse {selected?.name} →
@@ -203,11 +203,11 @@ export function AccusationScreen() {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col gap-4"
           >
-            <div className="px-5 py-4 rounded-lg border border-[#F43F5E]/40 bg-[#F43F5E]/08 text-center">
-              <p className="text-[#F43F5E] font-bold mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
+            <div className="px-5 py-4 rounded-lg border border-[#B91C1C]/40 bg-[#B91C1C]/08 text-center">
+              <p className="text-[#B91C1C] font-bold mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
                 Final Accusation
               </p>
-              <p className="text-[#94A3B8] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+              <p className="text-[#9A8F7E] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
                 You believe <strong className="text-white">{selected?.name}</strong> killed{" "}
                 {session?.casePublic.victim.name}. This cannot be undone.
               </p>
@@ -217,7 +217,7 @@ export function AccusationScreen() {
               <button
                 onClick={() => setConfirming(false)}
                 disabled={submitting}
-                className="flex-1 py-3 rounded-md border border-[#2A2A4A] text-[#94A3B8] hover:border-[#6B7280] transition-all text-sm"
+                className="flex-1 py-3 rounded-md border border-[#222018] text-[#9A8F7E] hover:border-[#5A5248] transition-all text-sm"
                 style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.7rem", letterSpacing: "0.1em" }}
               >
                 Wait, Go Back
@@ -226,7 +226,7 @@ export function AccusationScreen() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAccuse}
                 disabled={submitting}
-                className="flex-1 py-3 rounded-md bg-[#F43F5E] hover:bg-[#e11d48] text-white text-sm tracking-[0.1em] uppercase flex items-center justify-center gap-2 transition-all"
+                className="flex-1 py-3 rounded-md bg-[#B91C1C] hover:bg-[#991B1B] text-white text-sm tracking-[0.1em] uppercase flex items-center justify-center gap-2 transition-all"
                 style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.7rem", minHeight: 48 }}
               >
                 {submitting ? (

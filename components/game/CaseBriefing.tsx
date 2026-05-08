@@ -109,7 +109,7 @@ export function CaseBriefing() {
             filter: "brightness(0.15) blur(2px)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F0F23]/70 via-[#0F0F23]/90 to-[#0F0F23]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0907]/70 via-[#0A0907]/90 to-[#0A0907]" />
       </div>
 
       {/* Content */}
@@ -120,8 +120,8 @@ export function CaseBriefing() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-3 text-xs text-[#6B7280] mb-3">
-            <span className="text-[#F43F5E] tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
+          <div className="flex items-center gap-3 text-xs text-[#5A5248] mb-3">
+            <span className="text-[#B91C1C] tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
               ◉ CASE FILE
             </span>
             <span>·</span>
@@ -150,7 +150,7 @@ export function CaseBriefing() {
             <div
               key={s}
               className={`h-0.5 flex-1 rounded-full transition-all duration-500 ${
-                i <= currentIdx - 1 ? "bg-[#7C3AED]" : "bg-[#2A2A4A]"
+                i <= currentIdx - 1 ? "bg-[#C9973E]" : "bg-[#222018]"
               }`}
             />
           ))}
@@ -210,9 +210,9 @@ function IntroStep({
         <span
           className="text-xs tracking-[0.2em] uppercase px-2 py-1 rounded border"
           style={{
-            color: "#F43F5E",
-            borderColor: "#F43F5E",
-            background: "rgba(244,63,94,0.08)",
+            color: "#B91C1C",
+            borderColor: "#B91C1C",
+            background: "rgba(185,28,28,0.08)",
             fontFamily: "var(--font-orbitron)",
             fontSize: "0.65rem",
           }}
@@ -222,7 +222,7 @@ function IntroStep({
       </div>
 
       <p
-        className="text-lg text-[#E2E8F0] leading-relaxed"
+        className="text-lg text-[#EDE5D5] leading-relaxed"
         style={{ fontFamily: "var(--font-jetbrains)" }}
       >
         {displayed}
@@ -246,37 +246,37 @@ function IntroStep({
 function VictimStep({ victim, onNext }: { victim: any; onNext: () => void }) {
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-[#F43F5E] text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
+      <h3 className="text-[#B91C1C] text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
         ◈ The Victim
       </h3>
 
       <div className="noir-card p-6">
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
           <div>
-            <p className="text-[#6B7280] text-xs uppercase tracking-wider mb-1">Name</p>
+            <p className="text-[#5A5248] text-xs uppercase tracking-wider mb-1">Name</p>
             <p className="text-white font-medium">{victim.name}</p>
           </div>
           <div>
-            <p className="text-[#6B7280] text-xs uppercase tracking-wider mb-1">Age</p>
+            <p className="text-[#5A5248] text-xs uppercase tracking-wider mb-1">Age</p>
             <p className="text-white font-medium">{victim.age}</p>
           </div>
           <div>
-            <p className="text-[#6B7280] text-xs uppercase tracking-wider mb-1">Occupation</p>
+            <p className="text-[#5A5248] text-xs uppercase tracking-wider mb-1">Occupation</p>
             <p className="text-white font-medium">{victim.occupation}</p>
           </div>
           <div>
-            <p className="text-[#6B7280] text-xs uppercase tracking-wider mb-1">Found at</p>
+            <p className="text-[#5A5248] text-xs uppercase tracking-wider mb-1">Found at</p>
             <p className="text-white font-medium">{victim.foundAt}</p>
           </div>
         </div>
-        <div className="border-t border-[#2A2A4A] pt-4">
-          <p className="text-[#6B7280] text-xs uppercase tracking-wider mb-2">Cause of Death</p>
-          <p className="text-[#F43F5E] font-medium text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+        <div className="border-t border-[#222018] pt-4">
+          <p className="text-[#5A5248] text-xs uppercase tracking-wider mb-2">Cause of Death</p>
+          <p className="text-[#B91C1C] font-medium text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
             {victim.causeOfDeath}
           </p>
         </div>
         {victim.description && (
-          <p className="mt-3 text-[#94A3B8] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+          <p className="mt-3 text-[#9A8F7E] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
             {victim.description}
           </p>
         )}
@@ -301,10 +301,10 @@ function FactsStep({ facts, onNext }: { facts: string[]; onNext: () => void }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-[#7C3AED] text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
+      <h3 className="text-[#C9973E] text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
         ◈ Known Facts
       </h3>
-      <p className="text-[#94A3B8] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+      <p className="text-[#9A8F7E] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
         These facts have been established by investigators. Everything else is up to you to uncover.
       </p>
 
@@ -315,10 +315,10 @@ function FactsStep({ facts, onNext }: { facts: string[]; onNext: () => void }) {
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-start gap-3 p-3 rounded bg-[#16162A] border border-[#2A2A4A]"
+                className="flex items-start gap-3 p-3 rounded bg-[#141210] border border-[#222018]"
               >
-                <span className="text-[#7C3AED] mt-0.5 text-xs">◆</span>
-                <p className="text-sm text-[#E2E8F0]" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                <span className="text-[#C9973E] mt-0.5 text-xs">◆</span>
+                <p className="text-sm text-[#EDE5D5]" style={{ fontFamily: "var(--font-jetbrains)" }}>
                   {fact}
                 </p>
               </motion.div>
@@ -367,14 +367,14 @@ function SuspectThumb({ imageUrl, name }: { imageUrl?: string; name: string }) {
   const src = imageUrl && retryCount > 0 ? `${imageUrl}&_r=${retryCount}` : imageUrl
 
   return (
-    <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#2A2A4A] flex-shrink-0 relative bg-[#1F1F3A]">
+    <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#222018] flex-shrink-0 relative bg-[#1C1917]">
       {/* Shimmer / fallback layer */}
       {(!loaded || errored) && (
         <div className="absolute inset-0 flex items-center justify-center">
           {imageUrl && !errored ? (
-            <div className="w-full h-full bg-gradient-to-br from-[#1F1F3A] via-[#2A2A4A] to-[#1F1F3A] animate-pulse" />
+            <div className="w-full h-full bg-gradient-to-br from-[#1C1917] via-[#222018] to-[#1C1917] animate-pulse" />
           ) : (
-            <User size={20} className="text-[#6B7280]" />
+            <User size={20} className="text-[#5A5248]" />
           )}
         </div>
       )}
@@ -411,7 +411,7 @@ function SuspectsStep({
       <h3 className="text-[#D4A853] text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
         ◈ Persons of Interest
       </h3>
-      <p className="text-[#94A3B8] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+      <p className="text-[#9A8F7E] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
         You will interrogate each suspect. Tap a name to preview their profile.
       </p>
 
@@ -428,7 +428,7 @@ function SuspectsStep({
               className={`w-full text-left flex items-center gap-4 p-4 rounded-lg border transition-all ${
                 selectedIdx === i
                   ? "border-[#D4A853]/50 bg-[#D4A853]/08"
-                  : "border-[#2A2A4A] bg-[#16162A] hover:border-[#D4A853]/30"
+                  : "border-[#222018] bg-[#141210] hover:border-[#D4A853]/30"
               }`}
             >
               {/* Portrait */}
@@ -438,7 +438,7 @@ function SuspectsStep({
                 <p className="text-white font-medium text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>
                   {s.name}
                 </p>
-                <p className="text-[#94A3B8] text-xs mt-0.5">
+                <p className="text-[#9A8F7E] text-xs mt-0.5">
                   {s.age} · {s.occupation}
                 </p>
                 {selectedIdx === i && (
@@ -447,10 +447,10 @@ function SuspectsStep({
                     animate={{ opacity: 1, height: "auto" }}
                     className="mt-2"
                   >
-                    <p className="text-[#94A3B8] text-xs leading-relaxed mb-1" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                    <p className="text-[#9A8F7E] text-xs leading-relaxed mb-1" style={{ fontFamily: "var(--font-jetbrains)" }}>
                       {s.relationship}
                     </p>
-                    <p className="text-[#E2E8F0] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                    <p className="text-[#EDE5D5] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
                       {s.backstory}
                     </p>
                   </motion.div>
@@ -458,7 +458,7 @@ function SuspectsStep({
               </div>
               <ChevronRight
                 size={14}
-                className="text-[#6B7280] flex-shrink-0 transition-transform"
+                className="text-[#5A5248] flex-shrink-0 transition-transform"
                 style={{ transform: selectedIdx === i ? "rotate(90deg)" : "rotate(0deg)" }}
               />
             </button>
@@ -467,7 +467,7 @@ function SuspectsStep({
       </div>
 
       {!imagesLoaded && (
-        <p className="text-xs text-[#6B7280] animate-pulse" style={{ fontFamily: "var(--font-jetbrains)" }}>
+        <p className="text-xs text-[#5A5248] animate-pulse" style={{ fontFamily: "var(--font-jetbrains)" }}>
           ◉ Generating suspect portraits...
         </p>
       )}
@@ -487,7 +487,7 @@ function ReadyStep({ onBegin }: { onBegin: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200 }}
       >
-        <div className="w-20 h-20 rounded-full border-2 border-[#F43F5E] flex items-center justify-center text-3xl mx-auto">
+        <div className="w-20 h-20 rounded-full border-2 border-[#B91C1C] flex items-center justify-center text-3xl mx-auto">
           ⚖
         </div>
       </motion.div>
@@ -499,37 +499,37 @@ function ReadyStep({ onBegin }: { onBegin: () => void }) {
         >
           One Accusation
         </h3>
-        <p className="text-[#94A3B8] text-sm max-w-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+        <p className="text-[#9A8F7E] text-sm max-w-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
           You have one chance to accuse the killer. Interrogate every suspect. Look for contradictions. When you&apos;re certain — make your move.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 w-full max-w-xs text-xs text-[#6B7280] text-left">
+      <div className="flex flex-col gap-3 w-full max-w-xs text-xs text-[#5A5248] text-left">
         <div className="flex items-center gap-2">
-          <span className="text-[#7C3AED]">◆</span>
+          <span className="text-[#C9973E]">◆</span>
           <span>Bookmark quotes as clues with the notebook</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[#7C3AED]">◆</span>
+          <span className="text-[#C9973E]">◆</span>
           <span>Switch between suspects freely</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[#7C3AED]">◆</span>
+          <span className="text-[#C9973E]">◆</span>
           <span>Your progress saves automatically</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[#F43F5E]">◆</span>
+          <span className="text-[#B91C1C]">◆</span>
           <span>Making an accusation ends the investigation</span>
         </div>
       </div>
 
       <motion.button
-        whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(244,63,94,0.5)" }}
+        whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(185,28,28,0.5)" }}
         whileTap={{ scale: 0.97 }}
         onClick={onBegin}
         className="px-10 py-4 rounded-md text-sm tracking-[0.15em] uppercase font-bold text-white transition-all"
         style={{
-          background: "linear-gradient(135deg, #7C3AED, #F43F5E)",
+          background: "linear-gradient(135deg, #C9973E, #B91C1C)",
           fontFamily: "var(--font-orbitron)",
           minHeight: 52,
         }}

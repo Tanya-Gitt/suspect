@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${orbitron.variable} ${jetbrainsMono.variable} h-full`}>
-      <body className="min-h-full bg-[#0F0F23] text-[#E2E8F0] antialiased">
+      <body className="min-h-full bg-[#0A0907] text-[#EDE5D5] antialiased">
         {children}
       </body>
     </html>

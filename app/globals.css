@@ -1,18 +1,23 @@
 @import "tailwindcss";
 
-/* ─── Noir Design System ──────────────────────────────────────────────────── */
+/* ─── Ember Design System v2 ──────────────────────────────────────────────── */
 :root {
-  /* Core palette */
-  --noir-bg:        #0F0F23;
-  --noir-surface:   #16162A;
-  --noir-border:    #2A2A4A;
-  --noir-primary:   #7C3AED;
-  --noir-primary-dim: #5B21B6;
-  --noir-accent:    #F43F5E;
-  --noir-gold:      #D4A853;
-  --noir-muted:     #6B7280;
-  --noir-text:      #E2E8F0;
-  --noir-text-dim:  #94A3B8;
+  /* Core palette — Ember */
+  --noir-bg:           #0A0907;
+  --noir-surface:      #141210;
+  --noir-surface-2:    #1C1917;
+  --noir-border:       rgba(255, 255, 255, 0.07);
+  --noir-border-solid: #222018;
+  --noir-primary:      #C9973E;
+  --noir-primary-dim:  #A87B2A;
+  --noir-primary-glow: rgba(201, 151, 62, 0.22);
+  --noir-accent:       #B91C1C;
+  --noir-accent-glow:  rgba(185, 28, 28, 0.28);
+  --noir-gold:         #D4A853;
+  --noir-muted:        #5A5248;
+  --noir-text:         #EDE5D5;
+  --noir-text-dim:     #9A8F7E;
+  --noir-text-faint:   #5A5248;
 
   /* Fonts */
   --font-heading: var(--font-orbitron), "Courier New", monospace;
@@ -20,23 +25,24 @@
 
   /* Mood filter transitions */
   --mood-filter-calm:     brightness(1) saturate(1);
-  --mood-filter-evasive:  brightness(0.9) saturate(0.8) hue-rotate(15deg);
-  --mood-filter-nervous:  brightness(0.85) saturate(1.2) hue-rotate(-10deg);
-  --mood-filter-cracking: brightness(0.75) saturate(1.5) hue-rotate(-20deg) contrast(1.1);
-  --mood-filter-caught:   brightness(0.65) saturate(0.4) contrast(1.3) sepia(0.3);
+  --mood-filter-evasive:  brightness(0.9) saturate(0.8) hue-rotate(10deg);
+  --mood-filter-nervous:  brightness(0.85) saturate(1.2) hue-rotate(-8deg);
+  --mood-filter-cracking: brightness(0.75) saturate(1.5) hue-rotate(-18deg) contrast(1.1);
+  --mood-filter-caught:   brightness(0.65) saturate(0.4) contrast(1.3) sepia(0.4);
 }
 
 @theme inline {
-  --color-noir-bg:         var(--noir-bg);
-  --color-noir-surface:    var(--noir-surface);
-  --color-noir-border:     var(--noir-border);
-  --color-noir-primary:    var(--noir-primary);
+  --color-noir-bg:          var(--noir-bg);
+  --color-noir-surface:     var(--noir-surface);
+  --color-noir-surface-2:   var(--noir-surface-2);
+  --color-noir-border:      var(--noir-border);
+  --color-noir-primary:     var(--noir-primary);
   --color-noir-primary-dim: var(--noir-primary-dim);
-  --color-noir-accent:     var(--noir-accent);
-  --color-noir-gold:       var(--noir-gold);
-  --color-noir-muted:      var(--noir-muted);
-  --color-noir-text:       var(--noir-text);
-  --color-noir-text-dim:   var(--noir-text-dim);
+  --color-noir-accent:      var(--noir-accent);
+  --color-noir-gold:        var(--noir-gold);
+  --color-noir-muted:       var(--noir-muted);
+  --color-noir-text:        var(--noir-text);
+  --color-noir-text-dim:    var(--noir-text-dim);
   --font-sans: var(--font-orbitron);
   --font-mono: var(--font-jetbrains);
 }
@@ -63,31 +69,54 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Film Grain Overlay ─────────────────────────────────────────────────── */
+/* ─── Ambient top glow (warm ember light from above) ───────────────────── */
 body::before {
+  content: "";
+  position: fixed;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 60vh;
+  background: radial-gradient(ellipse at center, rgba(201, 151, 62, 0.055) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Film grain overlay ─────────────────────────────────────────────────── */
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
-  opacity: 0.35;
+  background-size: 200px 200px;
+  opacity: 0.42;
   mix-blend-mode: overlay;
 }
 
-/* ─── Vignette ───────────────────────────────────────────────────────────── */
-body::after {
-  content: "";
+/* ─── Corner vignette (separate element via JS-injected div or reuse) ────── */
+/* Applied via .vignette utility class */
+.vignette {
   position: fixed;
   inset: 0;
-  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
   pointer-events: none;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 55%,
-    rgba(0, 0, 0, 0.6) 100%
+  z-index: 9998;
+}
+
+/* ─── Scanlines ──────────────────────────────────────────────────────────── */
+.scanlines,
+.scanlines-overlay {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
   );
+  pointer-events: none;
 }
 
 /* ─── Typography ─────────────────────────────────────────────────────────── */
@@ -106,46 +135,29 @@ p, li, span {
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--noir-bg);
-}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--noir-bg); }
 ::-webkit-scrollbar-thumb {
   background: var(--noir-primary);
   border-radius: 2px;
+  opacity: 0.6;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--noir-accent);
-}
+::-webkit-scrollbar-thumb:hover { background: var(--noir-gold); }
 
-/* ─── Focus rings (accessibility) ───────────────────────────────────────── */
+/* ─── Focus rings ────────────────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--noir-primary);
   outline-offset: 3px;
   border-radius: 3px;
 }
 
-/* ─── Selection color ────────────────────────────────────────────────────── */
+/* ─── Selection ──────────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(124, 58, 237, 0.4);
+  background: rgba(201, 151, 62, 0.35);
   color: #fff;
 }
 
-/* ─── Utility: scanline effect ───────────────────────────────────────────── */
-.scanlines {
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.15) 2px,
-    rgba(0, 0, 0, 0.15) 4px
-  );
-  pointer-events: none;
-}
-
-/* ─── Utility: glitch text ───────────────────────────────────────────────── */
+/* ─── Glitch text ────────────────────────────────────────────────────────── */
 @keyframes glitch-1 {
   0%, 100% { clip-path: inset(0 0 100% 0); }
   20% { clip-path: inset(33% 0 33% 0); transform: translate(-3px, 0); }
@@ -154,52 +166,44 @@ p, li, span {
   80% { clip-path: inset(50% 0 10% 0); transform: translate(2px, 0); }
 }
 
-.glitch {
-  position: relative;
-}
-
+.glitch { position: relative; }
 .glitch::before,
 .glitch::after {
   content: attr(data-text);
   position: absolute;
   top: 0; left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
 }
-
 .glitch::before {
   color: var(--noir-accent);
   animation: glitch-1 3s infinite;
-  opacity: 0.5;
+  opacity: 0.45;
 }
-
 .glitch::after {
   color: var(--noir-primary);
   animation: glitch-1 3s infinite 0.1s;
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
-/* ─── Utility: redacted text ─────────────────────────────────────────────── */
+/* ─── Redacted text ──────────────────────────────────────────────────────── */
 .redacted {
-  background: #1a1a2e;
+  background: #18160E;
   color: transparent;
   border-radius: 2px;
   cursor: default;
   user-select: none;
   transition: all 0.3s;
 }
-
 .redacted.revealed {
   background: transparent;
   color: var(--noir-gold);
 }
 
-/* ─── Utility: typewriter cursor ─────────────────────────────────────────── */
+/* ─── Typewriter cursor ──────────────────────────────────────────────────── */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
-
 .cursor::after {
   content: "▋";
   display: inline-block;
@@ -208,39 +212,53 @@ p, li, span {
   margin-left: 1px;
 }
 
-/* ─── Utility: mood border glow ──────────────────────────────────────────── */
-.mood-calm     { box-shadow: 0 0 12px rgba(124, 58, 237, 0.2); }
-.mood-evasive  { box-shadow: 0 0 12px rgba(100, 116, 139, 0.3); }
-.mood-nervous  { box-shadow: 0 0 16px rgba(234, 179, 8, 0.25); }
-.mood-cracking { box-shadow: 0 0 20px rgba(244, 63, 94, 0.35); }
-.mood-caught   { box-shadow: 0 0 24px rgba(244, 63, 94, 0.6); }
+/* ─── Mood border glows — ember palette ─────────────────────────────────── */
+.mood-calm     { box-shadow: 0 0 16px rgba(201, 151, 62, 0.15); }
+.mood-evasive  { box-shadow: 0 0 14px rgba(90,  82,  72,  0.3); }
+.mood-nervous  { box-shadow: 0 0 18px rgba(212, 168, 83,  0.25); }
+.mood-cracking { box-shadow: 0 0 22px rgba(185, 28,  28,  0.35); }
+.mood-caught   { box-shadow: 0 0 28px rgba(185, 28,  28,  0.65); }
 
-/* ─── Card base ───────────────────────────────────────────────────────────── */
+/* ─── Card base — glassmorphism ──────────────────────────────────────────── */
 .noir-card {
-  background: var(--noir-surface);
-  border: 1px solid var(--noir-border);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.032);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  position: relative;
 }
 
-/* ─── Button base ─────────────────────────────────────────────────────────── */
+/* Top edge glow line on cards */
+.noir-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 151, 62, 0.35), transparent);
+  border-radius: 0 0 1px 1px;
+}
+
+/* ─── Button base ────────────────────────────────────────────────────────── */
 .btn-primary {
-  background: var(--noir-primary);
+  background: linear-gradient(135deg, var(--noir-primary), var(--noir-accent));
   color: white;
   font-family: var(--font-heading);
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 12px 28px;
-  border-radius: 4px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.2s;
   min-height: 44px;
+  box-shadow: 0 4px 20px var(--noir-primary-glow);
 }
 
 .btn-primary:hover {
-  background: var(--noir-primary-dim);
-  box-shadow: 0 0 16px rgba(124, 58, 237, 0.5);
+  opacity: 0.88;
+  box-shadow: 0 6px 28px var(--noir-primary-glow);
 }
 
 .btn-primary:active {
@@ -248,12 +266,13 @@ p, li, span {
 }
 
 .btn-danger {
-  background: var(--noir-accent);
+  background: linear-gradient(135deg, var(--noir-accent), #7F1D1D);
+  box-shadow: 0 4px 20px var(--noir-accent-glow);
 }
 
 .btn-danger:hover {
-  background: #e11d48;
-  box-shadow: 0 0 16px rgba(244, 63, 94, 0.5);
+  opacity: 0.88;
+  box-shadow: 0 6px 28px var(--noir-accent-glow);
 }
 
 /* ─── Chat bubble fade-in ────────────────────────────────────────────────── */
@@ -261,34 +280,48 @@ p, li, span {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 .fade-up {
   animation: fadeUp 0.3s ease-out forwards;
 }
 
-/* ─── Pulse dot (for active suspect) ────────────────────────────────────── */
+/* ─── Pulse dot ──────────────────────────────────────────────────────────── */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
 }
-
 .pulse-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--noir-accent);
   animation: pulse-dot 1.5s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--noir-accent-glow);
 }
 
 /* ─── Notebook paper texture ─────────────────────────────────────────────── */
 .notebook-paper {
-  background-color: #1a1a0f;
+  background-color: #15140C;
   background-image:
     repeating-linear-gradient(
       transparent,
       transparent 27px,
-      rgba(212, 168, 83, 0.12) 27px,
-      rgba(212, 168, 83, 0.12) 28px
+      rgba(212, 168, 83, 0.10) 27px,
+      rgba(212, 168, 83, 0.10) 28px
     );
-  background-position: 0 0;
+}
+
+/* ─── Ambient glow utility ───────────────────────────────────────────────── */
+.ambient-glow-primary {
+  box-shadow: 0 0 40px var(--noir-primary-glow), 0 0 80px rgba(201, 151, 62, 0.08);
+}
+.ambient-glow-accent {
+  box-shadow: 0 0 40px var(--noir-accent-glow);
+}
+
+/* ─── Divider with glow ──────────────────────────────────────────────────── */
+.glow-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 151, 62, 0.3), transparent);
+  border: none;
+  margin: 0;
 }

@@ -1,65 +1,134 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { useGameStore, SaveSlot } from "@/store/gameStore"
 import { DIFFICULTY_LABELS, DifficultyMode } from "@/types"
-import { BookOpen, Play, RotateCcw, Volume2, VolumeX, Trash2 } from "lucide-react"
+import { Volume2, VolumeX } from "lucide-react"
 
-const TAGLINE_PHRASES = [
-  "Everyone is lying.",
-  "The truth is buried.",
-  "You have one accusation.",
-  "Choose wisely.",
+// ─── Boot sequence lines ──────────────────────────────────────────────────────
+type BLine = { text: string; delay: number; color: string; speed: number; dim?: boolean; indent?: boolean }
+
+const BOOT_LINES: BLine[] = [
+  { text: "HOMICIDE DIVISION — SECURE TERMINAL",       delay: 0,    color: "#2E251A", speed: 0 },
+  { text: `SESSION: ${new Date().toISOString().slice(0, 19)}Z`, delay: 0, color: "#2E251A", speed: 0 },
+  { text: "",                                           delay: 250,  color: "",        speed: 0 },
+  { text: "Establishing encrypted tunnel...",          delay: 400,  color: "#5A5248", speed: 20, dim: true },
+  { text: "Handshake OK. Latency: 12ms.",              delay: 900,  color: "#5A5248", speed: 18, dim: true },
+  { text: "Verifying credentials...",                  delay: 1400, color: "#5A5248", speed: 20, dim: true },
+  { text: "",                                           delay: 1900, color: "",        speed: 0 },
+  { text: "OPERATIVE IDENTITY  ·  CONFIRMED",         delay: 2000, color: "#C9973E", speed: 16 },
+  { text: "CLEARANCE TIER      ·  DETECTIVE / CLASS-A", delay: 2400, color: "#C9973E", speed: 14 },
+  { text: "ACCESS GRANTED.",                           delay: 2900, color: "#D4A853", speed: 12 },
+  { text: "",                                           delay: 3300, color: "",        speed: 0 },
+  { text: "Retrieving case index...",                  delay: 3500, color: "#5A5248", speed: 18, dim: true },
+  { text: "6 cases on file. AI suspects active.",     delay: 3900, color: "#9A8F7E", speed: 14 },
+  { text: "",                                           delay: 4300, color: "",        speed: 0 },
+  { text: "! ONE ACCUSATION PERMITTED.",               delay: 4500, color: "#B91C1C", speed: 12 },
 ]
 
+const BOOT_DONE_AT = 5400 // ms after mount when right panel appears
+const CMDS_AT      = 5400
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function useTyped(text: string, speed: number, active: boolean) {
+  const [out, setOut] = useState("")
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    if (!active) return
+    if (speed === 0) { setOut(text); setDone(true); return }
+    setOut(""); setDone(false)
+    let i = 0
+    const iv = setInterval(() => {
+      setOut(text.slice(0, i + 1)); i++
+      if (i >= text.length) { clearInterval(iv); setDone(true) }
+    }, speed)
+    return () => clearInterval(iv)
+  }, [active, text, speed])
+  return { out, done }
+}
+
+function BLineRow({ line, active }: { line: BLine; active: boolean }) {
+  const { out, done } = useTyped(line.text, line.speed, active)
+  if (!active && line.text !== "") return null
+  if (line.text === "") return <div style={{ height: "0.7rem" }} />
+  return (
+    <div style={{
+      color: line.color, fontFamily: "var(--font-jetbrains)", fontSize: "0.7rem",
+      lineHeight: 1.75, opacity: line.dim ? 0.45 : 1,
+      paddingLeft: line.indent ? "1.5rem" : 0, letterSpacing: "0.04em",
+    }}>
+      {out}
+      {!done && <span style={{ color: "#C9973E", animation: "blink 1s step-end infinite" }}>▋</span>}
+    </div>
+  )
+}
+
+function ClockWidget() {
+  const [t, setT] = useState("")
+  useEffect(() => {
+    const tick = () => setT(new Date().toISOString().slice(11, 19) + "Z")
+    tick()
+    const iv = setInterval(tick, 1000)
+    return () => clearInterval(iv)
+  }, [])
+  return (
+    <span style={{ color: "#2E251A", fontFamily: "var(--font-jetbrains)", fontSize: "0.55rem", letterSpacing: "0.1em" }}>
+      {t}
+    </span>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 export function MainMenu() {
   const { setPhase, saveSlots, removeSaveSlot, audio, setAudioEnabled, loadSession } = useGameStore()
-  const [taglineIdx, setTaglineIdx] = useState(0)
-  const [showSlots, setShowSlots] = useState(false)
-  const [deletingSlot, setDeletingSlot] = useState<string | null>(null)
-  const [confirmReset, setConfirmReset] = useState(false)
-  const [continuingSlot, setContinuingSlot] = useState<string | null>(null)
-  const [continueError, setContinueError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Cycle taglines
+  const activeSlots    = saveSlots.filter((s) => s.status === "active")
+  const completedSlots = saveSlots.filter((s) => s.status === "completed" || s.status === "replaying")
+  const hasSlots       = saveSlots.length > 0
+
+  const [activeLines,  setActiveLines]  = useState<number[]>([])
+  const [showRight,    setShowRight]    = useState(false)
+  const [showCmds,     setShowCmds]     = useState(false)
+
+  // Command mode: "main" | "slots" | "reset_confirm"
+  const [mode,         setMode]         = useState<"main" | "slots" | "reset_confirm">("main")
+  const [typed,        setTyped]        = useState("")
+  const [submitted,    setSubmitted]    = useState(false)
+  const [hovered,      setHovered]      = useState<string | null>(null)
+
+  // Continue flow
+  const [continuingSlot,  setContinuingSlot]  = useState<string | null>(null)
+  const [continueError,   setContinueError]   = useState<string | null>(null)
+  const [deletingSlot,    setDeletingSlot]    = useState<string | null>(null)
+
+  const logEndRef = useRef<HTMLDivElement>(null)
+  const inputRef  = useRef<HTMLInputElement>(null)
+
+  // Boot sequence timers
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setTaglineIdx((i) => (i + 1) % TAGLINE_PHRASES.length)
-    }, 2800)
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+    const T: ReturnType<typeof setTimeout>[] = []
+    BOOT_LINES.forEach((l, i) => T.push(setTimeout(() => setActiveLines(p => [...p, i]), l.delay)))
+    T.push(setTimeout(() => setShowRight(true), BOOT_DONE_AT))
+    T.push(setTimeout(() => setShowCmds(true), CMDS_AT))
+    return () => T.forEach(clearTimeout)
   }, [])
 
-  const activeSlots = saveSlots.filter((s) => s.status === "active")
-  const completedSlots = saveSlots.filter((s) => s.status === "completed" || s.status === "replaying")
+  // Auto-scroll log
+  useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: "smooth" }) }, [activeLines])
 
-  function handleResetProgress() {
-    if (!confirmReset) {
-      setConfirmReset(true)
-      // Auto-cancel after 4s if user doesn't confirm
-      setTimeout(() => setConfirmReset(false), 4000)
-      return
-    }
-    // Wipe all save slots from store (persisted to localStorage)
-    useGameStore.setState({ saveSlots: [] })
-    setConfirmReset(false)
-    setShowSlots(false)
-  }
+  // Focus input when commands appear
+  useEffect(() => { if (showCmds) inputRef.current?.focus() }, [showCmds, mode])
 
-  async function handleContinue(slot: SaveSlot) {
+  // ── Continue handler ──────────────────────────────────────────────────────
+  const handleContinue = useCallback(async (slot: SaveSlot) => {
     setContinuingSlot(slot.sessionId)
     setContinueError(null)
     try {
-      // Try to fetch the existing session from the server
       let session: ReturnType<typeof JSON.parse> | null = null
       const res = await fetch(`/api/session?id=${slot.sessionId}`)
-
       if (res.ok) {
         session = await res.json()
       } else {
-        // Session expired (server restarted) — silently recreate it
-        // so the user doesn't lose their save slot metadata
         const recreateRes = await fetch("/api/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -70,313 +139,351 @@ export function MainMenu() {
           throw new Error(err.error || "Failed to resume session")
         }
         session = await recreateRes.json()
-        // Update the slot with the new sessionId
-        useGameStore.getState().upsertSaveSlot({
-          ...slot,
-          sessionId: session.id,
-          lastPlayedAt: Date.now(),
-        })
+        useGameStore.getState().upsertSaveSlot({ ...slot, sessionId: session.id, lastPlayedAt: Date.now() })
       }
-
-      // loadSession now derives image URLs atomically — no extra calls needed
       loadSession(session)
       sessionStorage.setItem("current_session_id", session.id)
       setPhase("briefing")
     } catch (err: unknown) {
-      setContinueError(err instanceof Error ? err.message : "Could not load session. Try starting a new investigation.")
-    } finally {
+      setContinueError(err instanceof Error ? err.message : "Could not load session.")
       setContinuingSlot(null)
     }
-  }
+  }, [loadSession, setPhase])
+
+  // ── Delete slot ───────────────────────────────────────────────────────────
+  const handleDelete = useCallback((sessionId: string) => {
+    setDeletingSlot(sessionId)
+    setTimeout(() => {
+      removeSaveSlot(sessionId)
+      setDeletingSlot(null)
+      // If no more slots, go back to main
+      if (saveSlots.filter(s => s.sessionId !== sessionId).length === 0) setMode("main")
+    }, 300)
+  }, [removeSaveSlot, saveSlots])
+
+  // ── Build command list based on mode ─────────────────────────────────────
+  type Cmd = { key: string; label: string; desc: string; action: () => void; danger?: boolean }
+
+  const mainCmds: Cmd[] = [
+    { key: "1", label: "new investigation", desc: "Open a fresh case file",
+      action: () => { setTyped("new investigation"); setSubmitted(true); setTimeout(() => setPhase("case_select"), 800) } },
+    ...(activeSlots.length > 0 ? [{
+      key: "2", label: `continue  (${activeSlots.length} active)`,
+      desc: "Resume an open investigation",
+      action: () => setMode("slots"),
+    }] : []),
+    ...(completedSlots.length > 0 ? [{
+      key: activeSlots.length > 0 ? "3" : "2",
+      label: `closed cases  (${completedSlots.length})`,
+      desc: "Replay a solved case",
+      action: () => setMode("slots"),
+    }] : []),
+    ...(hasSlots ? [{
+      key: activeSlots.length > 0 ? (completedSlots.length > 0 ? "4" : "3") : (completedSlots.length > 0 ? "3" : "2"),
+      label: "reset progress",
+      desc: `Wipe all ${saveSlots.length} save${saveSlots.length !== 1 ? "s" : ""}`,
+      action: () => setMode("reset_confirm"),
+      danger: true,
+    }] : []),
+  ]
+
+  const allSlots = [...activeSlots, ...completedSlots]
+  const slotCmds: Cmd[] = [
+    ...allSlots.map((slot, i) => {
+      const daysAgo = Math.floor((Date.now() - slot.lastPlayedAt) / 86400000)
+      const when    = daysAgo === 0 ? "today" : daysAgo === 1 ? "yesterday" : `${daysAgo}d ago`
+      const status  = slot.status === "completed"
+        ? (slot.wasCorrect ? "✓ solved" : "✗ failed")
+        : "active"
+      return {
+        key: String(i + 1),
+        label: slot.caseTitle,
+        desc:  `${DIFFICULTY_LABELS[slot.difficulty as DifficultyMode]} · ${when} · ${status}`,
+        action: () => handleContinue(slot),
+      }
+    }),
+    { key: "0", label: "← back", desc: "Return to main menu",
+      action: () => { setMode("main"); setContinueError(null) } },
+  ]
+
+  const resetCmds: Cmd[] = [
+    { key: "y", label: "yes, wipe everything", desc: `Delete all ${saveSlots.length} save${saveSlots.length !== 1 ? "s" : ""} permanently`,
+      action: () => {
+        useGameStore.setState({ saveSlots: [] })
+        setMode("main")
+      },
+      danger: true },
+    { key: "n", label: "cancel", desc: "Keep saves, go back",
+      action: () => setMode("main") },
+  ]
+
+  const activeCmds = mode === "main" ? mainCmds : mode === "slots" ? slotCmds : resetCmds
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!showCmds || submitted) return
+    const handler = (e: KeyboardEvent) => {
+      const cmd = activeCmds.find(c => c.key === e.key.toLowerCase())
+      if (cmd) cmd.action()
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [showCmds, submitted, activeCmds])
+
+  // ── Mode heading ─────────────────────────────────────────────────────────
+  const modeHeading = mode === "slots" ? "SELECT INVESTIGATION" : mode === "reset_confirm" ? "CONFIRM RESET" : "SELECT AN ACTION"
+  const modeHint    = mode === "slots" ? "click or press key"  : mode === "reset_confirm" ? "this cannot be undone" : "click or press key"
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-dvh px-4 overflow-hidden">
-      {/* Background atmospheric gradient */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(ellipse at 30% 20%, rgba(124,58,237,0.12) 0%, transparent 60%),
-            radial-gradient(ellipse at 70% 80%, rgba(244,63,94,0.08) 0%, transparent 60%)
-          `,
-        }}
-      />
+    <div className="h-dvh overflow-hidden flex flex-col relative" style={{ background: "#050403" }}>
 
-      {/* Red detective tape accent */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#F43F5E] to-transparent opacity-60" />
+      {/* CRT scanlines */}
+      <div className="absolute inset-0 pointer-events-none z-20" style={{
+        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)",
+      }} />
 
-      {/* Main content */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 flex flex-col items-center gap-2 text-center max-w-2xl w-full"
-      >
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          <div className="text-[#F43F5E] text-xs tracking-[0.4em] uppercase mb-3 font-mono">
-            ▸ Case File 001
+      {/* Phosphor amber glow */}
+      <div className="absolute inset-0 pointer-events-none z-0" style={{
+        background: "radial-gradient(ellipse 80% 65% at 50% 50%, rgba(201,151,62,0.05) 0%, transparent 70%)",
+      }} />
+
+      {/* Corner vignette */}
+      <div className="absolute inset-0 pointer-events-none z-20" style={{
+        background: "radial-gradient(ellipse 88% 82% at 50% 50%, transparent 35%, rgba(0,0,0,0.82) 100%)",
+      }} />
+
+      {/* ── Two-column layout ── */}
+      <div className="relative z-10 flex flex-1 overflow-hidden px-6 md:px-10 lg:px-16 pt-6 pb-4 gap-6 lg:gap-14 max-w-6xl mx-auto w-full">
+
+        {/* LEFT — boot log */}
+        <div className="flex flex-col w-72 lg:w-88 flex-shrink-0 overflow-hidden">
+          {/* Log header */}
+          <div className="flex items-center justify-between pb-3 mb-3 flex-shrink-0"
+            style={{ borderBottom: "1px solid rgba(201,151,62,0.08)" }}>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#C9973E]"
+                style={{ boxShadow: "0 0 5px rgba(201,151,62,0.6)" }} />
+              <span style={{ color: "#2E251A", fontFamily: "var(--font-jetbrains)",
+                fontSize: "0.55rem", letterSpacing: "0.2em" }}>
+                SECURE TERMINAL
+              </span>
+            </div>
+            <ClockWidget />
           </div>
-          <h1
-            className="text-7xl md:text-9xl font-black tracking-widest text-white leading-none"
-            style={{
-              fontFamily: "var(--font-orbitron)",
-              textShadow: "0 0 40px rgba(124,58,237,0.4), 0 0 80px rgba(124,58,237,0.2)",
-            }}
-          >
+
+          {/* Scrollable log output */}
+          <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+            {BOOT_LINES.map((line, i) => (
+              <BLineRow key={i} line={line} active={activeLines.includes(i)} />
+            ))}
+            <div ref={logEndRef} />
+          </div>
+        </div>
+
+        {/* Vertical divider */}
+        <div className="flex-shrink-0 w-px self-stretch" style={{
+          background: "linear-gradient(to bottom, transparent, rgba(201,151,62,0.12) 25%, rgba(201,151,62,0.12) 75%, transparent)",
+        }} />
+
+        {/* RIGHT — title + commands */}
+        <div className="flex-1 flex flex-col justify-center min-w-0 gap-0"
+          style={{ opacity: showRight ? 1 : 0, transition: "opacity 0.8s ease" }}>
+
+          {/* Case tag */}
+          <p style={{ color: "#B91C1C", fontFamily: "var(--font-orbitron)",
+            fontSize: "0.52rem", letterSpacing: "0.4em", marginBottom: "0.6rem" }}>
+            ◉ CASE FILE 001 — HOMICIDE DIVISION
+          </p>
+
+          {/* Title */}
+          <h1 style={{
+            fontFamily: "var(--font-orbitron)", fontWeight: 900,
+            fontSize: "clamp(2.8rem, 6vw, 5rem)", letterSpacing: "0.1em",
+            color: "#EDE5D5", lineHeight: 1,
+            textShadow: "0 0 50px rgba(201,151,62,0.25), 0 0 100px rgba(201,151,62,0.08)",
+          }}>
             SUSPECT
           </h1>
-        </motion.div>
 
-        {/* Animated tagline */}
-        <div className="h-8 mt-2 mb-6">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={taglineIdx}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.4 }}
-              className="text-[#D4A853] text-sm tracking-[0.2em] uppercase"
-              style={{ fontFamily: "var(--font-jetbrains)" }}
-            >
-              {TAGLINE_PHRASES[taglineIdx]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
+          {/* Tagline */}
+          <p style={{ color: "#3A3028", fontFamily: "var(--font-jetbrains)",
+            fontSize: "0.62rem", letterSpacing: "0.2em", marginTop: "0.55rem" }}>
+            AI INTERROGATION GAME · EVERYONE IS LYING · ONE ACCUSATION
+          </p>
 
-        {/* Divider */}
-        <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#7C3AED] to-transparent mb-8" />
+          {/* Divider */}
+          <div className="my-5 h-px" style={{
+            background: "linear-gradient(to right, rgba(201,151,62,0.18), transparent)",
+          }} />
 
-        {/* CTA buttons */}
-        <div className="flex flex-col gap-4 w-full max-w-xs">
-          <motion.button
-            whileHover={{ scale: 1.03, boxShadow: "0 0 30px rgba(124,58,237,0.5)" }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setPhase("case_select")}
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-md border border-[#7C3AED] bg-[#7C3AED]/20 text-white text-sm tracking-[0.15em] uppercase transition-all"
-            style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
-          >
-            <Play size={16} />
-            New Investigation
-          </motion.button>
+          {/* Commands */}
+          <div style={{ opacity: showCmds ? 1 : 0, transition: "opacity 0.5s ease" }}>
 
-          {activeSlots.length > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowSlots(!showSlots)}
-              className="flex items-center justify-center gap-3 w-full py-4 rounded-md border border-[#D4A853]/40 bg-[#D4A853]/10 text-[#D4A853] text-sm tracking-[0.15em] uppercase transition-all"
-              style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
-            >
-              <BookOpen size={16} />
-              Continue ({activeSlots.length})
-            </motion.button>
-          )}
+            {/* Mode heading */}
+            <p style={{ color: "#5A5248", fontFamily: "var(--font-jetbrains)",
+              fontSize: "0.6rem", letterSpacing: "0.15em", marginBottom: "0.85rem" }}>
+              {modeHeading} <span style={{ color: "#2E251A" }}>· {modeHint}</span>
+            </p>
 
-          {completedSlots.length > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowSlots(!showSlots)}
-              className="flex items-center justify-center gap-3 w-full py-4 rounded-md border border-[#6B7280]/30 bg-[#6B7280]/10 text-[#94A3B8] text-sm tracking-[0.15em] uppercase transition-all"
-              style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
-            >
-              <RotateCcw size={16} />
-              Closed Cases ({completedSlots.length})
-            </motion.button>
-          )}
-        </div>
+            {/* Command rows */}
+            {!submitted && (
+              <div className="space-y-1.5 mb-5">
+                {activeCmds.map(({ key, label, desc, action, danger }) => {
+                  const isLoading = mode === "slots" && continuingSlot === allSlots[parseInt(key) - 1]?.sessionId
+                  const isDeleting = mode === "slots" && deletingSlot === allSlots[parseInt(key) - 1]?.sessionId
+                  return (
+                    <button
+                      key={key}
+                      onClick={action}
+                      onMouseEnter={() => setHovered(key)}
+                      onMouseLeave={() => setHovered(null)}
+                      disabled={!!continuingSlot || isDeleting}
+                      className="w-full text-left flex items-center gap-3 py-2 px-2.5 transition-all"
+                      style={{
+                        background: hovered === key
+                          ? danger ? "rgba(185,28,28,0.07)" : "rgba(201,151,62,0.05)"
+                          : "transparent",
+                        border: `1px solid ${hovered === key
+                          ? danger ? "rgba(185,28,28,0.2)" : "rgba(201,151,62,0.15)"
+                          : "rgba(201,151,62,0.04)"}`,
+                        opacity: (!!continuingSlot && !isLoading) || isDeleting ? 0.4 : 1,
+                        transition: "all 0.15s",
+                        cursor: !!continuingSlot ? "default" : "pointer",
+                      }}
+                    >
+                      {/* Key badge */}
+                      <span style={{
+                        color: hovered === key ? (danger ? "#B91C1C" : "#C9973E") : "#3A3028",
+                        fontFamily: "var(--font-jetbrains)", fontSize: "0.68rem",
+                        border: `1px solid ${hovered === key ? (danger ? "#B91C1C50" : "#C9973E50") : "#3A302850"}`,
+                        padding: "1px 5px", minWidth: 20, textAlign: "center",
+                        transition: "all 0.15s", flexShrink: 0,
+                      }}>{key}</span>
 
-        {/* Save slots panel */}
-        <AnimatePresence>
-          {showSlots && saveSlots.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              className="w-full max-w-sm overflow-hidden"
-            >
-              <div className="noir-card p-3 flex flex-col gap-2">
-                <p className="text-[#94A3B8] text-xs tracking-widest uppercase mb-2">
-                  Active Cases
-                </p>
-                {saveSlots.map((slot) => (
-                  <SaveSlotRow
-                    key={slot.sessionId}
-                    slot={slot}
-                    onContinue={() => handleContinue(slot)}
-                    onDelete={() => {
-                      setDeletingSlot(slot.sessionId)
-                      setTimeout(() => {
-                        removeSaveSlot(slot.sessionId)
-                        setDeletingSlot(null)
-                      }, 300)
-                    }}
-                    deleting={deletingSlot === slot.sessionId}
-                    loading={continuingSlot === slot.sessionId}
-                  />
-                ))}
-                {continueError && (
-                  <p className="text-[#F43F5E] text-xs mt-1 px-1" style={{ fontFamily: "var(--font-jetbrains)" }}>
-                    {continueError}
-                  </p>
-                )}
+                      {/* Label + desc */}
+                      <div className="flex-1 min-w-0 flex items-baseline gap-2 flex-wrap">
+                        <span style={{
+                          color: hovered === key ? (danger ? "#F87171" : "#EDE5D5") : (danger ? "#B91C1C" : "#9A8F7E"),
+                          fontFamily: "var(--font-jetbrains)", fontSize: "0.72rem",
+                          letterSpacing: "0.05em", transition: "color 0.15s",
+                        }}>
+                          {isLoading ? "loading…" : label}
+                        </span>
+                        <span style={{ color: "#2E251A", fontFamily: "var(--font-jetbrains)", fontSize: "0.6rem" }}>
+                          — {desc}
+                        </span>
+                      </div>
+
+                      {/* Delete button for slot rows */}
+                      {mode === "slots" && key !== "0" && !isLoading && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(allSlots[parseInt(key) - 1]?.sessionId) }}
+                          className="flex-shrink-0 transition-colors"
+                          style={{ color: hovered === key ? "#B91C1C50" : "transparent", fontSize: "0.65rem", padding: "2px 4px" }}
+                          aria-label="Remove save"
+                        >
+                          ✕
+                        </button>
+                      )}
+
+                      {/* Enter arrow */}
+                      {!isLoading && (
+                        <span style={{
+                          color: danger ? "#B91C1C" : "#C9973E",
+                          fontFamily: "var(--font-jetbrains)", fontSize: "0.68rem",
+                          opacity: hovered === key ? 1 : 0, transition: "opacity 0.15s", flexShrink: 0,
+                        }}>↩</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
 
-        {/* Footer */}
-        <div className="mt-12 flex flex-col items-center gap-4">
-          <div className="flex items-center gap-6 text-[#6B7280] text-xs">
-            <button
-              onClick={() => setAudioEnabled(!audio.enabled)}
-              className="flex items-center gap-2 hover:text-[#94A3B8] transition-colors p-2"
-              aria-label={audio.enabled ? "Mute audio" : "Enable audio"}
-            >
-              {audio.enabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-              <span className="tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.65rem" }}>
-                {audio.enabled ? "Sound On" : "Sound Off"}
-              </span>
-            </button>
-            <span className="opacity-40">•</span>
-            <span style={{ fontFamily: "var(--font-jetbrains)" }}>AI Interrogation Game</span>
+            {/* Error */}
+            {continueError && (
+              <p style={{ color: "#B91C1C", fontFamily: "var(--font-jetbrains)",
+                fontSize: "0.65rem", marginBottom: "0.75rem" }}>
+                ! {continueError}
+              </p>
+            )}
+
+            {/* Input / submitted state */}
+            {!submitted ? (
+              <div className="flex items-center gap-2 pt-3"
+                style={{ borderTop: "1px solid rgba(201,151,62,0.07)" }}>
+                <span style={{ color: "#C9973E", fontFamily: "var(--font-jetbrains)",
+                  fontSize: "0.72rem", whiteSpace: "nowrap" }}>
+                  detective@suspect:~$
+                </span>
+                <input
+                  ref={inputRef}
+                  value={typed}
+                  onChange={e => setTyped(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && typed.trim()) {
+                      const match = activeCmds.find(c =>
+                        c.key === typed.trim().toLowerCase() ||
+                        c.label.toLowerCase().startsWith(typed.trim().toLowerCase())
+                      )
+                      if (match) match.action()
+                      else setTyped("")
+                    }
+                  }}
+                  placeholder={mode === "main" ? "type a command or press a key…" : "press a key or type…"}
+                  className="flex-1 bg-transparent outline-none min-w-0"
+                  style={{
+                    color: "#EDE5D5", fontFamily: "var(--font-jetbrains)", fontSize: "0.72rem",
+                    caretColor: "#C9973E", letterSpacing: "0.04em",
+                  }}
+                  spellCheck={false}
+                  autoComplete="off"
+                />
+              </div>
+            ) : (
+              <div className="pt-3 space-y-1" style={{ borderTop: "1px solid rgba(201,151,62,0.07)" }}>
+                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "0.72rem" }}>
+                  <span style={{ color: "#C9973E" }}>detective@suspect:~$ </span>
+                  <span style={{ color: "#EDE5D5" }}>{typed}</span>
+                </div>
+                <div style={{ color: "#D4A853", fontFamily: "var(--font-jetbrains)",
+                  fontSize: "0.7rem", letterSpacing: "0.06em" }}>
+                  Initiating session
+                  <span style={{ color: "#C9973E", animation: "blink 1s step-end infinite" }}> ▋</span>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Reset progress */}
-          {saveSlots.length > 0 && (
-            <AnimatePresence mode="wait">
-              {!confirmReset ? (
-                <motion.button
-                  key="reset-btn"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={handleResetProgress}
-                  className="flex items-center gap-2 text-[#6B7280]/60 hover:text-[#F43F5E] transition-colors text-xs p-1"
-                  style={{ fontFamily: "var(--font-jetbrains)" }}
-                >
-                  <Trash2 size={11} />
-                  Reset all progress
-                </motion.button>
-              ) : (
-                <motion.div
-                  key="reset-confirm"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center gap-3"
-                >
-                  <span className="text-[#F43F5E] text-xs" style={{ fontFamily: "var(--font-jetbrains)" }}>
-                    Erase all {saveSlots.length} save{saveSlots.length !== 1 ? "s" : ""}?
-                  </span>
-                  <button
-                    onClick={handleResetProgress}
-                    className="px-3 py-1 rounded text-xs bg-[#F43F5E] text-white hover:bg-[#e11d48] transition-colors"
-                    style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem", letterSpacing: "0.1em" }}
-                  >
-                    Yes, wipe it
-                  </button>
-                  <button
-                    onClick={() => setConfirmReset(false)}
-                    className="px-3 py-1 rounded text-xs border border-[#2A2A4A] text-[#6B7280] hover:text-[#94A3B8] transition-colors"
-                    style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem", letterSpacing: "0.1em" }}
-                  >
-                    Cancel
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Decorative corner elements */}
-      <div className="absolute top-6 left-6 text-[#7C3AED]/30 text-xs font-mono select-none">
-        CLASSIFIED
-      </div>
-      <div className="absolute top-6 right-6 text-[#7C3AED]/30 text-xs font-mono select-none">
-        ◈ EYES ONLY
-      </div>
-      <div className="absolute bottom-6 left-6 text-[#6B7280]/30 text-xs font-mono select-none">
-        v1.0.0
-      </div>
-      <div className="absolute bottom-6 right-6 text-[#6B7280]/30 text-xs font-mono select-none">
-        ◈ ACTIVE
+      {/* ── Bottom status strip ── */}
+      <div className="relative z-10 flex items-center justify-between flex-shrink-0 px-6 md:px-10 lg:px-16 py-2 max-w-6xl mx-auto w-full"
+        style={{ borderTop: "1px solid rgba(201,151,62,0.05)" }}>
+        <span style={{ color: "#2A221A", fontFamily: "var(--font-jetbrains)",
+          fontSize: "0.5rem", letterSpacing: "0.18em" }}>
+          CONN: ENCRYPTED · JURISDICTION: CLASSIFIED · CASE: ACTIVE
+        </span>
+        <div className="flex items-center gap-4">
+          {/* Audio toggle */}
+          <button
+            onClick={() => setAudioEnabled(!audio.enabled)}
+            className="flex items-center gap-1.5 transition-colors"
+            style={{ color: "#2A221A" }}
+            aria-label={audio.enabled ? "Mute" : "Unmute"}
+          >
+            {audio.enabled
+              ? <Volume2 size={11} />
+              : <VolumeX size={11} />}
+            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "0.5rem",
+              letterSpacing: "0.15em" }}>
+              {audio.enabled ? "SFX ON" : "SFX OFF"}
+            </span>
+          </button>
+          <span style={{ color: "#2A221A", fontFamily: "var(--font-jetbrains)",
+            fontSize: "0.5rem" }}>v1.0.0</span>
+        </div>
       </div>
     </div>
-  )
-}
-
-function SaveSlotRow({
-  slot,
-  onContinue,
-  onDelete,
-  deleting,
-  loading,
-}: {
-  slot: SaveSlot
-  onContinue: () => void
-  onDelete: () => void
-  deleting: boolean
-  loading?: boolean
-}) {
-  const daysAgo = Math.floor((Date.now() - slot.lastPlayedAt) / 86400000)
-  const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`
-
-  return (
-    <motion.div
-      animate={{ opacity: deleting ? 0 : 1, x: deleting ? -20 : 0 }}
-      transition={{ duration: 0.3 }}
-      className="flex items-center gap-3 p-3 rounded bg-[#1F1F3A] border border-[#2A2A4A] hover:border-[#7C3AED]/40 transition-colors"
-    >
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-xs font-medium truncate" style={{ fontFamily: "var(--font-orbitron)" }}>
-          {slot.caseTitle}
-        </p>
-        <p className="text-[#94A3B8] text-xs mt-0.5">
-          {DIFFICULTY_LABELS[slot.difficulty as DifficultyMode]} · {timeLabel}
-          {slot.status === "completed" && (
-            <span className={`ml-2 ${slot.wasCorrect ? "text-green-400" : "text-[#F43F5E]"}`}>
-              {slot.wasCorrect ? "✓ Solved" : "✗ Failed"}
-            </span>
-          )}
-        </p>
-      </div>
-      <button
-        onClick={onContinue}
-        disabled={loading}
-        className={`text-xs px-3 py-1.5 border rounded transition-all flex items-center gap-1.5 ${
-          loading
-            ? "text-[#6B7280] border-[#2A2A4A] cursor-not-allowed"
-            : "text-[#7C3AED] hover:text-white border-[#7C3AED]/40 hover:bg-[#7C3AED]"
-        }`}
-        style={{ minWidth: 70, minHeight: 32 }}
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin" width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            </svg>
-            Loading…
-          </>
-        ) : (
-          slot.status === "active" ? "Continue" : "Replay"
-        )}
-      </button>
-      <button
-        onClick={onDelete}
-        disabled={loading}
-        className="text-[#6B7280] hover:text-[#F43F5E] transition-colors p-1.5 disabled:opacity-30"
-        aria-label="Delete save"
-      >
-        ✕
-      </button>
-    </motion.div>
   )
 }

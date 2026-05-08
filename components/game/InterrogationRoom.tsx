@@ -11,11 +11,11 @@ import { nanoid } from "nanoid"
 import { proceduralAudio } from "@/lib/audio-engine"
 
 const MOOD_COLORS: Record<MoodState, string> = {
-  calm:     "#7C3AED",
-  evasive:  "#6B7280",
+  calm:     "#C9973E",
+  evasive:  "#5A5248",
   nervous:  "#D4A853",
   cracking: "#F97316",
-  caught:   "#F43F5E",
+  caught:   "#B91C1C",
 }
 
 const MOOD_LABELS: Record<MoodState, string> = {
@@ -201,10 +201,10 @@ export function InterrogationRoom() {
   return (
     <div className="flex flex-col h-dvh overflow-hidden">
       {/* ─── Top bar ── */}
-      <header className="flex items-center gap-3 px-4 py-3 border-b border-[#2A2A4A] bg-[#0F0F23]/95 backdrop-blur-sm z-20">
+      <header className="flex items-center gap-3 px-4 py-3 border-b border-[#222018] bg-[#0A0907]/95 backdrop-blur-sm z-20">
         <button
           onClick={() => setShowSuspectList(!showSuspectList)}
-          className="p-2 hover:text-[#7C3AED] transition-colors"
+          className="p-2 hover:text-[#C9973E] transition-colors"
           aria-label="Switch suspect"
         >
           <Menu size={18} />
@@ -216,8 +216,8 @@ export function InterrogationRoom() {
             {imageUrls[currentSuspect.id] ? (
               <img src={imageUrls[currentSuspect.id]} alt={currentSuspect.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-[#1F1F3A] flex items-center justify-center">
-                <User size={14} className="text-[#6B7280]" />
+              <div className="w-full h-full bg-[#1C1917] flex items-center justify-center">
+                <User size={14} className="text-[#5A5248]" />
               </div>
             )}
           </div>
@@ -245,14 +245,14 @@ export function InterrogationRoom() {
           </button>
           <button
             onClick={() => setAudioEnabled(!audio.enabled)}
-            className="p-2 hover:text-[#7C3AED] transition-colors"
+            className="p-2 hover:text-[#C9973E] transition-colors"
             aria-label={audio.enabled ? "Mute" : "Unmute"}
           >
             {audio.enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <button
             onClick={() => { proceduralAudio.playTensionSting(); setTimeout(() => setPhase("accusation"), 300) }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-[#F43F5E]/40 text-[#F43F5E] hover:bg-[#F43F5E]/10 transition-all text-xs ml-1"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-[#B91C1C]/40 text-[#B91C1C] hover:bg-[#B91C1C]/10 transition-all text-xs ml-1"
             style={{ fontFamily: "var(--font-orbitron)", minHeight: 34 }}
           >
             <Gavel size={13} />
@@ -268,7 +268,7 @@ export function InterrogationRoom() {
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
-            className="overflow-hidden border-b border-[#2A2A4A] bg-[#16162A] z-10"
+            className="overflow-hidden border-b border-[#222018] bg-[#141210] z-10"
           >
             <div className="flex gap-3 px-4 py-3">
               {allSuspects.map((s) => {
@@ -283,7 +283,7 @@ export function InterrogationRoom() {
                       setShowSuspectList(false)
                     }}
                     className={`flex flex-col items-center gap-1.5 p-2 rounded-lg transition-all ${
-                      isActive ? "bg-[#7C3AED]/20 border border-[#7C3AED]/50" : "hover:bg-[#1F1F3A]"
+                      isActive ? "bg-[#C9973E]/20 border border-[#C9973E]/50" : "hover:bg-[#1C1917]"
                     }`}
                     style={{ minWidth: 64 }}
                   >
@@ -291,12 +291,12 @@ export function InterrogationRoom() {
                       {imageUrls[s.id] ? (
                         <img src={imageUrls[s.id]} alt={s.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-[#1F1F3A] flex items-center justify-center">
-                          <User size={12} className="text-[#6B7280]" />
+                        <div className="w-full h-full bg-[#1C1917] flex items-center justify-center">
+                          <User size={12} className="text-[#5A5248]" />
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-center text-[#E2E8F0] leading-tight max-w-[60px] truncate" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+                    <p className="text-xs text-center text-[#EDE5D5] leading-tight max-w-[60px] truncate" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
                       {s.name.split(" ")[0]}
                     </p>
                   </button>
@@ -310,7 +310,7 @@ export function InterrogationRoom() {
       {/* ─── Main area ── */}
       <div className="flex flex-1 overflow-hidden">
         {/* Suspect profile panel (left, desktop) */}
-        <div className="hidden lg:flex w-72 flex-shrink-0 border-r border-[#2A2A4A] flex-col overflow-hidden">
+        <div className="hidden lg:flex w-72 flex-shrink-0 border-r border-[#222018] flex-col overflow-hidden">
           <SuspectPanel
             suspect={currentSuspect}
             suspectState={suspectState}
@@ -330,17 +330,17 @@ export function InterrogationRoom() {
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center py-16 text-center gap-3"
               >
-                <div className="w-14 h-14 rounded-full bg-[#16162A] border border-[#2A2A4A] flex items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-[#141210] border border-[#222018] flex items-center justify-center">
                   {imageUrls[currentSuspect.id] ? (
                     <img src={imageUrls[currentSuspect.id]} alt="" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <User size={20} className="text-[#6B7280]" />
+                    <User size={20} className="text-[#5A5248]" />
                   )}
                 </div>
-                <p className="text-[#94A3B8] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                <p className="text-[#9A8F7E] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
                   {currentSuspect.name} is waiting.
                 </p>
-                <p className="text-[#6B7280] text-xs max-w-xs">
+                <p className="text-[#5A5248] text-xs max-w-xs">
                   Ask them where they were that night. What they know. What they&apos;re hiding.
                 </p>
               </motion.div>
@@ -364,17 +364,17 @@ export function InterrogationRoom() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-3 max-w-2xl"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#2A2A4A]">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#222018]">
                   {imageUrls[currentSuspect.id] ? (
                     <img src={imageUrls[currentSuspect.id]} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 bg-[#1F1F3A] flex items-center justify-center rounded-full">
-                      <User size={12} className="text-[#6B7280]" />
+                    <div className="w-8 h-8 bg-[#1C1917] flex items-center justify-center rounded-full">
+                      <User size={12} className="text-[#5A5248]" />
                     </div>
                   )}
                 </div>
                 <div
-                  className="px-4 py-3 rounded-lg bg-[#16162A] border text-sm text-[#E2E8F0] leading-relaxed"
+                  className="px-4 py-3 rounded-lg bg-[#141210] border text-sm text-[#EDE5D5] leading-relaxed"
                   style={{ borderColor: moodColor + "40", fontFamily: "var(--font-jetbrains)" }}
                 >
                   {streamingState.buffer}
@@ -385,12 +385,12 @@ export function InterrogationRoom() {
 
             {/* Typing indicator */}
             {streamingState.isStreaming && !streamingState.buffer && (
-              <div className="flex gap-2 items-center px-4 py-3 bg-[#16162A] rounded-lg w-24 border border-[#2A2A4A]">
+              <div className="flex gap-2 items-center px-4 py-3 bg-[#141210] rounded-lg w-24 border border-[#222018]">
                 <div className="flex gap-1">
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-[#6B7280]"
+                      className="w-1.5 h-1.5 rounded-full bg-[#5A5248]"
                       animate={{ y: [0, -4, 0] }}
                       transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
                     />
@@ -409,7 +409,7 @@ export function InterrogationRoom() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mx-4 mb-2 px-3 py-2 rounded border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] text-xs"
+                className="mx-4 mb-2 px-3 py-2 rounded border border-[#B91C1C]/30 bg-[#B91C1C]/10 text-[#B91C1C] text-xs"
                 style={{ fontFamily: "var(--font-jetbrains)" }}
               >
                 {error}
@@ -418,10 +418,10 @@ export function InterrogationRoom() {
           </AnimatePresence>
 
           {/* Input area */}
-          <div className="px-4 py-3 border-t border-[#2A2A4A] bg-[#0F0F23]">
+          <div className="px-4 py-3 border-t border-[#222018] bg-[#0A0907]">
             <div
-              className="flex gap-3 items-end p-1 rounded-lg border transition-colors focus-within:border-[#7C3AED]/60"
-              style={{ borderColor: streamingState.isStreaming ? "#2A2A4A" : "#2A2A4A", background: "#16162A" }}
+              className="flex gap-3 items-end p-1 rounded-lg border transition-colors focus-within:border-[#C9973E]/60"
+              style={{ borderColor: streamingState.isStreaming ? "#222018" : "#222018", background: "#141210" }}
             >
               <textarea
                 ref={inputRef}
@@ -432,7 +432,7 @@ export function InterrogationRoom() {
                 maxLength={500}
                 disabled={streamingState.isStreaming}
                 rows={1}
-                className="flex-1 bg-transparent resize-none px-3 py-2.5 text-sm text-[#E2E8F0] placeholder-[#6B7280] focus:outline-none disabled:opacity-50"
+                className="flex-1 bg-transparent resize-none px-3 py-2.5 text-sm text-[#EDE5D5] placeholder-[#5A5248] focus:outline-none disabled:opacity-50"
                 style={{
                   fontFamily: "var(--font-jetbrains)",
                   maxHeight: 120,
@@ -451,8 +451,8 @@ export function InterrogationRoom() {
                 disabled={streamingState.isStreaming || !message.trim()}
                 className={`px-4 py-2.5 rounded-md text-xs tracking-widest uppercase transition-all flex-shrink-0 ${
                   message.trim() && !streamingState.isStreaming
-                    ? "bg-[#7C3AED] text-white hover:bg-[#5B21B6]"
-                    : "bg-[#2A2A4A] text-[#6B7280] cursor-not-allowed"
+                    ? "bg-[#C9973E] text-white hover:bg-[#A87B2A]"
+                    : "bg-[#222018] text-[#5A5248] cursor-not-allowed"
                 }`}
                 style={{ fontFamily: "var(--font-orbitron)", minHeight: 40, minWidth: 60 }}
                 aria-label="Send"
@@ -461,11 +461,11 @@ export function InterrogationRoom() {
               </motion.button>
             </div>
             <div className="flex justify-between mt-1.5 px-1">
-              <p className="text-[#6B7280] text-xs">
+              <p className="text-[#5A5248] text-xs">
                 Press Enter to send · Shift+Enter for new line
               </p>
               {message.length > 400 && (
-                <p className={`text-xs tabular-nums ${message.length >= 500 ? "text-[#F43F5E]" : "text-[#D4A853]"}`}
+                <p className={`text-xs tabular-nums ${message.length >= 500 ? "text-[#B91C1C]" : "text-[#D4A853]"}`}
                   style={{ fontFamily: "var(--font-jetbrains)" }}>
                   {message.length}/500
                 </p>
@@ -482,7 +482,7 @@ export function InterrogationRoom() {
               animate={{ width: 320, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: "spring", damping: 25 }}
-              className="hidden md:flex flex-col border-l border-[#2A2A4A] overflow-hidden flex-shrink-0"
+              className="hidden md:flex flex-col border-l border-[#222018] overflow-hidden flex-shrink-0"
             >
               <Notebook />
             </motion.div>
@@ -519,7 +519,7 @@ function ChatBubble({
         <div
           className="max-w-md px-4 py-3 rounded-lg text-sm text-white leading-relaxed"
           style={{
-            background: "linear-gradient(135deg, #7C3AED, #5B21B6)",
+            background: "linear-gradient(135deg, #C9973E, #A87B2A)",
             fontFamily: "var(--font-jetbrains)",
           }}
         >
@@ -544,8 +544,8 @@ function ChatBubble({
         {suspectImage ? (
           <img src={suspectImage} alt={suspectName} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-[#1F1F3A] flex items-center justify-center">
-            <User size={12} className="text-[#6B7280]" />
+          <div className="w-full h-full bg-[#1C1917] flex items-center justify-center">
+            <User size={12} className="text-[#5A5248]" />
           </div>
         )}
       </div>
@@ -556,13 +556,13 @@ function ChatBubble({
             {suspectName}
           </span>
           {turn.mood && (
-            <span className="text-xs text-[#6B7280]">· {MOOD_LABELS[turn.mood]}</span>
+            <span className="text-xs text-[#5A5248]">· {MOOD_LABELS[turn.mood]}</span>
           )}
         </div>
         <div
-          className="px-4 py-3 rounded-lg text-sm text-[#E2E8F0] leading-relaxed border"
+          className="px-4 py-3 rounded-lg text-sm text-[#EDE5D5] leading-relaxed border"
           style={{
-            background: "#16162A",
+            background: "#141210",
             borderColor: moodColor + "30",
             fontFamily: "var(--font-jetbrains)",
           }}

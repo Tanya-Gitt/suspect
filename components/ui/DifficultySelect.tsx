@@ -22,7 +22,7 @@ const DIFFICULTIES: {
     mode: "detective",
     description: "Suspects guard their secrets. You'll need to push harder for the truth.",
     traits: ["Evasive answers", "One planted red herring", "Cross-referencing needed", "Standard challenge"],
-    color: "#3B82F6",
+    color: "#C9973E",
   },
   {
     mode: "inspector",
@@ -39,7 +39,7 @@ const DIFFICULTIES: {
       "Clues require inference",
       "No hand-holding",
     ],
-    color: "#F43F5E",
+    color: "#B91C1C",
   },
 ]
 
@@ -106,14 +106,14 @@ export function DifficultySelect() {
       >
         <button
           onClick={() => setPhase("case_select")}
-          className="p-2 hover:text-[#7C3AED] transition-colors"
+          className="p-2 hover:text-[#C9973E] transition-colors"
           aria-label="Back"
           disabled={starting}
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-[#94A3B8] text-xs tracking-[0.3em] uppercase mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
+          <h2 className="text-[#9A8F7E] text-xs tracking-[0.3em] uppercase mb-1" style={{ fontFamily: "var(--font-orbitron)" }}>
             Choose Difficulty
           </h2>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-orbitron)" }}>
@@ -136,7 +136,7 @@ export function DifficultySelect() {
             className={`relative text-left p-5 rounded-lg border transition-all duration-200 ${
               selectedDifficulty === d.mode
                 ? "border-opacity-80 bg-opacity-20"
-                : "border-[#2A2A4A] bg-[#16162A] hover:border-opacity-50"
+                : "border-[#222018] bg-[#141210] hover:border-opacity-50"
             }`}
             style={{
               borderColor: selectedDifficulty === d.mode ? d.color : undefined,
@@ -162,11 +162,11 @@ export function DifficultySelect() {
                 >
                   {DIFFICULTY_LABELS[d.mode]}
                 </span>
-                <span className="text-xs text-[#6B7280]">
+                <span className="text-xs text-[#5A5248]">
                   {DIFFICULTY_DURATIONS[d.mode]}
                 </span>
               </div>
-              <p className="text-[#94A3B8] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+              <p className="text-[#9A8F7E] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
                 {d.description}
               </p>
             </div>
@@ -184,12 +184,12 @@ export function DifficultySelect() {
             exit={{ opacity: 0, y: -10 }}
             className="noir-card p-5 mb-6"
           >
-            <p className="text-[#94A3B8] text-xs tracking-widest uppercase mb-3" style={{ fontFamily: "var(--font-orbitron)" }}>
+            <p className="text-[#9A8F7E] text-xs tracking-widest uppercase mb-3" style={{ fontFamily: "var(--font-orbitron)" }}>
               What to expect
             </p>
             <div className="grid grid-cols-2 gap-2">
               {selectedInfo.traits.map((t) => (
-                <div key={t} className="flex items-center gap-2 text-xs text-[#E2E8F0]">
+                <div key={t} className="flex items-center gap-2 text-xs text-[#EDE5D5]">
                   <span style={{ color: selectedInfo.color }}>◆</span>
                   <span style={{ fontFamily: "var(--font-jetbrains)" }}>{t}</span>
                 </div>
@@ -206,7 +206,7 @@ export function DifficultySelect() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-4 p-3 rounded border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] text-xs"
+            className="mb-4 p-3 rounded border border-[#B91C1C]/30 bg-[#B91C1C]/10 text-[#B91C1C] text-xs"
           >
             {error}
           </motion.div>
@@ -221,8 +221,8 @@ export function DifficultySelect() {
         disabled={!selectedDifficulty || starting}
         className={`w-full py-4 rounded-md text-sm tracking-[0.15em] uppercase transition-all flex items-center justify-center gap-3 ${
           selectedDifficulty && !starting
-            ? "bg-[#7C3AED] hover:bg-[#5B21B6] text-white cursor-pointer"
-            : "bg-[#2A2A4A] text-[#6B7280] cursor-not-allowed"
+            ? "bg-[#C9973E] hover:bg-[#A87B2A] text-white cursor-pointer"
+            : "bg-[#222018] text-[#5A5248] cursor-not-allowed"
         }`}
         style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
       >
@@ -237,7 +237,7 @@ export function DifficultySelect() {
       </motion.button>
 
       {!selectedDifficulty && (
-        <p className="text-center text-xs text-[#6B7280] mt-3">
+        <p className="text-center text-xs text-[#5A5248] mt-3">
           Select a difficulty to continue
         </p>
       )}

@@ -100,14 +100,14 @@ export function TruthReveal() {
             className={`relative flex flex-col items-center py-12 px-6 rounded-xl border-2 text-center overflow-hidden ${
               correct
                 ? "border-[#22C55E]/50 bg-[#22C55E]/05"
-                : "border-[#F43F5E]/50 bg-[#F43F5E]/05"
+                : "border-[#B91C1C]/50 bg-[#B91C1C]/05"
             }`}
           >
             {/* Background glow */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: `radial-gradient(ellipse at center, ${correct ? "rgba(34,197,94,0.08)" : "rgba(244,63,94,0.08)"} 0%, transparent 70%)`,
+                background: `radial-gradient(ellipse at center, ${correct ? "rgba(34,197,94,0.08)" : "rgba(185,28,28,0.08)"} 0%, transparent 70%)`,
               }}
             />
 
@@ -119,7 +119,7 @@ export function TruthReveal() {
               {correct ? (
                 <CheckCircle size={64} className="text-[#22C55E] mb-4" />
               ) : (
-                <XCircle size={64} className="text-[#F43F5E] mb-4" />
+                <XCircle size={64} className="text-[#B91C1C] mb-4" />
               )}
             </motion.div>
 
@@ -127,7 +127,7 @@ export function TruthReveal() {
               className="text-3xl font-black text-white mb-2"
               style={{
                 fontFamily: "var(--font-orbitron)",
-                textShadow: `0 0 30px ${correct ? "#22C55E" : "#F43F5E"}60`,
+                textShadow: `0 0 30px ${correct ? "#22C55E" : "#B91C1C"}60`,
               }}
             >
               {correct ? "Case Closed" : "Wrong Accusation"}
@@ -138,7 +138,7 @@ export function TruthReveal() {
                 You identified the killer. Justice will be served.
               </p>
             ) : (
-              <p className="text-[#F43F5E] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
+              <p className="text-[#B91C1C] text-sm" style={{ fontFamily: "var(--font-jetbrains)" }}>
                 {accusedName} is innocent. The real killer walks free.
               </p>
             )}
@@ -153,7 +153,7 @@ export function TruthReveal() {
               />
               {!correct && (
                 <>
-                  <div className="text-[#6B7280] text-xl">→</div>
+                  <div className="text-[#5A5248] text-xl">→</div>
                   <SuspectTag
                     label="Actual Killer"
                     name={realMurdererName}
@@ -174,18 +174,18 @@ export function TruthReveal() {
             className="grid grid-cols-2 gap-4"
           >
             <div className="noir-card p-5">
-              <p className="text-[#6B7280] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+              <p className="text-[#5A5248] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
                 Motive
               </p>
-              <p className="text-[#E2E8F0] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+              <p className="text-[#EDE5D5] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
                 {motive}
               </p>
             </div>
             <div className="noir-card p-5">
-              <p className="text-[#6B7280] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+              <p className="text-[#5A5248] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
                 Method
               </p>
-              <p className="text-[#E2E8F0] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+              <p className="text-[#EDE5D5] text-sm leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
                 {method}
               </p>
             </div>
@@ -200,13 +200,13 @@ export function TruthReveal() {
             className="noir-card p-6"
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-px h-4 bg-[#7C3AED]" />
-              <p className="text-[#7C3AED] text-xs tracking-[0.25em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
+              <div className="w-px h-4 bg-[#C9973E]" />
+              <p className="text-[#C9973E] text-xs tracking-[0.25em] uppercase" style={{ fontFamily: "var(--font-orbitron)" }}>
                 The Full Truth
               </p>
             </div>
             <p
-              className={`text-[#E2E8F0] text-sm leading-relaxed ${!truthDone ? "cursor" : ""}`}
+              className={`text-[#EDE5D5] text-sm leading-relaxed ${!truthDone ? "cursor" : ""}`}
               style={{ fontFamily: "var(--font-jetbrains)" }}
             >
               {startTyping ? truthText : ""}
@@ -225,7 +225,7 @@ export function TruthReveal() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={handlePlayAgain}
-              className="flex-1 flex items-center justify-center gap-3 py-4 rounded-md border border-[#7C3AED]/50 text-[#7C3AED] hover:bg-[#7C3AED]/10 transition-all text-sm tracking-[0.12em] uppercase"
+              className="flex-1 flex items-center justify-center gap-3 py-4 rounded-md border border-[#C9973E]/50 text-[#C9973E] hover:bg-[#C9973E]/10 transition-all text-sm tracking-[0.12em] uppercase"
               style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
             >
               <RotateCcw size={16} />
@@ -235,7 +235,7 @@ export function TruthReveal() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={handleMainMenu}
-              className="flex-1 flex items-center justify-center gap-3 py-4 rounded-md bg-[#7C3AED] hover:bg-[#5B21B6] text-white text-sm tracking-[0.12em] uppercase transition-all"
+              className="flex-1 flex items-center justify-center gap-3 py-4 rounded-md bg-[#C9973E] hover:bg-[#A87B2A] text-white text-sm tracking-[0.12em] uppercase transition-all"
               style={{ fontFamily: "var(--font-orbitron)", minHeight: 52 }}
             >
               <Home size={16} />
@@ -250,13 +250,13 @@ export function TruthReveal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-center text-xs text-[#6B7280]"
+            className="text-center text-xs text-[#5A5248]"
             style={{ fontFamily: "var(--font-jetbrains)" }}
           >
             <p>
-              Difficulty: <span className="text-[#94A3B8]">{DIFFICULTY_LABELS[session.difficulty as DifficultyMode]}</span>
+              Difficulty: <span className="text-[#9A8F7E]">{DIFFICULTY_LABELS[session.difficulty as DifficultyMode]}</span>
               {" · "}
-              Time played: <span className="text-[#94A3B8]">{formatDuration(Date.now() - session.startedAt)}</span>
+              Time played: <span className="text-[#9A8F7E]">{formatDuration(Date.now() - session.startedAt)}</span>
             </p>
           </motion.div>
         )}
@@ -276,7 +276,7 @@ function SuspectTag({
   imageUrl?: string
   highlight: "green" | "red" | "gold"
 }) {
-  const colors = { green: "#22C55E", red: "#F43F5E", gold: "#D4A853" }
+  const colors = { green: "#22C55E", red: "#B91C1C", gold: "#D4A853" }
   const c = colors[highlight]
 
   return (
@@ -288,7 +288,7 @@ function SuspectTag({
         {imageUrl ? (
           <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-[#1F1F3A]" />
+          <div className="w-full h-full bg-[#1C1917]" />
         )}
       </div>
       <p className="text-white text-xs font-bold text-center" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.7rem" }}>

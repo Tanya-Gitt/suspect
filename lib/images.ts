@@ -22,7 +22,7 @@ export function suspectPortraitUrl(
   // Including age ensures young vs old suspects get different appearances.
   const dicebearSeed = `${name}-${age ?? 0}-${seed}`
 
-  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(dicebearSeed)}&backgroundColor=1F1F3A,16162A,2A2A4A&backgroundType=gradientLinear&radius=0`
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(dicebearSeed)}&backgroundColor=1A1510,231D15,2E261A&backgroundType=gradientLinear&radius=0`
 }
 
 export function sceneBackgroundUrl(setting: string, seed: number | string): string {

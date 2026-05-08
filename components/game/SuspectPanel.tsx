@@ -6,11 +6,11 @@ import { SuspectPublic, SuspectSessionState, MoodState } from "@/types"
 import { User } from "lucide-react"
 
 const MOOD_COLORS: Record<MoodState, string> = {
-  calm:     "#7C3AED",
-  evasive:  "#6B7280",
+  calm:     "#C9973E",
+  evasive:  "#5A5248",
   nervous:  "#D4A853",
   cracking: "#F97316",
-  caught:   "#F43F5E",
+  caught:   "#B91C1C",
 }
 
 const MOOD_FILTER: Record<MoodState, string> = {
@@ -57,7 +57,7 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
       {/* Portrait */}
       <div className="relative">
         <motion.div
-          className="w-full aspect-square rounded-lg overflow-hidden border-2"
+          className="relative w-full aspect-square rounded-lg overflow-hidden border-2"
           style={{
             borderColor: moodColor,
             boxShadow: `0 0 20px ${moodColor}30`,
@@ -70,11 +70,11 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
         >
           {/* Placeholder shown until image loads */}
           {(!imgLoaded || imgError || !imageUrl) && (
-            <div className="absolute inset-0 bg-[#16162A] flex flex-col items-center justify-center gap-2 z-0">
+            <div className="absolute inset-0 bg-[#141210] flex flex-col items-center justify-center gap-2 z-0">
               {imageUrl && !imgError ? (
-                <div className="w-full h-full bg-gradient-to-br from-[#1F1F3A] via-[#2A2A4A] to-[#1F1F3A] animate-pulse" />
+                <div className="w-full h-full bg-gradient-to-br from-[#1C1917] via-[#222018] to-[#1C1917] animate-pulse" />
               ) : (
-                <User size={48} className="text-[#2A2A4A]" />
+                <User size={48} className="text-[#5A5248]" />
               )}
             </div>
           )}
@@ -112,24 +112,24 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
         <h3 className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>
           {suspect.name}
         </h3>
-        <p className="text-[#94A3B8] text-xs mt-0.5">{suspect.age} · {suspect.occupation}</p>
-        <p className="text-[#6B7280] text-xs mt-1 italic">{suspect.relationship}</p>
+        <p className="text-[#9A8F7E] text-xs mt-0.5">{suspect.age} · {suspect.occupation}</p>
+        <p className="text-[#5A5248] text-xs mt-1 italic">{suspect.relationship}</p>
       </div>
 
       {/* Tension meter */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-[#6B7280] text-xs tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+          <p className="text-[#5A5248] text-xs tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
             Pressure
           </p>
           <p className="text-xs" style={{ color: moodColor, fontFamily: "var(--font-jetbrains)" }}>
             {exchangeCount} exchanges
           </p>
         </div>
-        <div className="h-1.5 rounded-full bg-[#2A2A4A] overflow-hidden">
+        <div className="h-1.5 rounded-full bg-[#222018] overflow-hidden">
           <motion.div
             className="h-full rounded-full"
-            style={{ background: `linear-gradient(90deg, #7C3AED, ${moodColor})` }}
+            style={{ background: `linear-gradient(90deg, #C9973E, ${moodColor})` }}
             animate={{ width: `${moodProgress * 100}%` }}
             transition={{ duration: 0.5 }}
           />
@@ -137,11 +137,11 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
       </div>
 
       {/* Backstory */}
-      <div className="border-t border-[#2A2A4A] pt-3">
-        <p className="text-[#6B7280] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+      <div className="border-t border-[#222018] pt-3">
+        <p className="text-[#5A5248] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
           Background
         </p>
-        <p className="text-[#94A3B8] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+        <p className="text-[#9A8F7E] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
           {suspect.backstory}
         </p>
       </div>
