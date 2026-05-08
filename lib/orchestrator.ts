@@ -131,7 +131,7 @@ export async function sendSuspectMessage(
   // Variable-speed: nervous suspects get token delay injected client-side
   // We tag the response header with mood for the client to read
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     systemInstruction: systemPrompt,
   })
 

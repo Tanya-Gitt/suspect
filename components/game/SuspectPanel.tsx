@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { SuspectPublic, SuspectSessionState, MoodState } from "@/types"
 import { User } from "lucide-react"
@@ -31,6 +32,8 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
   const moodColor = MOOD_COLORS[mood]
   const exchangeCount = suspectState?.exchangeCount ?? 0
   const moodProgress = Math.min(exchangeCount / 10, 1) // 0–1 for visual progress
+  const [imgLoaded, setImgLoaded] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   return (
     <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto">
@@ -48,18 +51,34 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
           }}
           transition={{ duration: 1 }}
         >
-          {imageUrl ? (
+          {/* Placeholder always present — hidden once image loads */}
+          {(!imgLoaded || imgError || !imageUrl) && (
+            <div className="absolute inset-0 bg-[#16162A] flex flex-col items-center justify-center gap-2">
+              {imageUrl && !imgError ? (
+                /* Loading shimmer */
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-full border-2 border-[#2A2A4A] border-t-[#7C3AED] animate-spin" />
+                  <p className="text-[#6B7280] text-xs" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                    Generating portrait…
+                  </p>
+                </div>
+              ) : (
+                <User size={48} className="text-[#2A2A4A]" />
+              )}
+            </div>
+          )}
+
+          {imageUrl && !imgError && (
             <motion.img
               src={imageUrl}
               alt={suspect.name}
               className="w-full h-full object-cover"
-              animate={{ filter: MOOD_FILTER[mood] }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
+              style={{ opacity: imgLoaded ? 1 : 0 }}
+              animate={{ filter: MOOD_FILTER[mood], opacity: imgLoaded ? 1 : 0 }}
+              transition={{ duration: imgLoaded ? 1.5 : 0.8, ease: "easeInOut" }}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
             />
-          ) : (
-            <div className="w-full h-full bg-[#16162A] flex items-center justify-center">
-              <User size={48} className="text-[#2A2A4A]" />
-            </div>
           )}
         </motion.div>
 

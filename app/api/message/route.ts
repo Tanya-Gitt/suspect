@@ -131,10 +131,16 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     inFlight.delete(sessionId)
-    console.error("Orchestrator error:", err)
+    const errMsg = (err as Error).message ?? ""
+    const isRateLimit = errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("Too Many Requests")
+    console.error("Orchestrator error:", errMsg.slice(0, 200))
     return NextResponse.json(
-      { error: "Suspect unavailable — they are not responding. Try again." },
-      { status: 503 }
+      {
+        error: isRateLimit
+          ? "AI service is rate-limited right now. Wait a moment and try again."
+          : "Suspect unavailable — they are not responding. Try again.",
+      },
+      { status: isRateLimit ? 429 : 503 }
     )
   }
 }
