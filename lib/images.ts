@@ -1,4 +1,6 @@
-// ─── Pollinations.ai — free, no API key, FLUX model ─────────────────────────
+// ─── Pollinations.ai — free, no API key ──────────────────────────────────────
+// NOTE: do NOT use model=flux — it's unreliable (frequent 500s and timeouts).
+// The default Pollinations model is fast and reliable.
 
 export function suspectPortraitUrl(
   name: string,
@@ -6,24 +8,24 @@ export function suspectPortraitUrl(
   era: string,
   seed: number | string
 ): string {
-  // Keep the prompt short and visual-only — long prompts trigger Pollinations 500s
+  // Keep the prompt short and visual-only — long prompts trigger 500s
   const visualDesc = appearance
     .split(",")
     .slice(0, 3)
     .map((s) => s.trim())
     .join(", ")
   const prompt = `Film noir portrait of ${name}, ${visualDesc}, dramatic side lighting, dark background, painterly, cinematic`
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=640&model=flux&seed=${seed}&nologo=true`
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=640&seed=${seed}&nologo=true`
 }
 
 export function sceneBackgroundUrl(setting: string, seed: number | string): string {
-  const prompt = `${setting}. Film noir, dark atmospheric lighting, cinematic still, empty, no people, moody, fog, shadows, photorealistic.`
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1280&height=720&model=flux&seed=${seed}&nologo=true`
+  const prompt = `${setting}, film noir, dark atmospheric lighting, cinematic, empty, moody, fog, shadows`
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1280&height=720&seed=${seed}&nologo=true`
 }
 
 export function evidencePhotoUrl(description: string, seed: number): string {
-  const prompt = `Crime scene evidence photograph: ${description}. Black and white, grainy, forensic photography, dark, harsh flash lighting, slightly blurred edges.`
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=640&height=480&model=flux&seed=${seed}&nologo=true`
+  const prompt = `Crime scene evidence photo, ${description}, black and white, grainy, forensic, dark, harsh flash`
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=640&height=480&seed=${seed}&nologo=true`
 }
 
 export function truthRevealUrl(
@@ -32,8 +34,8 @@ export function truthRevealUrl(
   setting: string,
   seed: number
 ): string {
-  const prompt = `Cinematic scene: ${murdererName}, ${method}, ${setting}. Film noir, dramatic low-key lighting, painterly illustration, no text, dark, atmospheric.`
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1280&height=720&model=flux&seed=${seed}&nologo=true`
+  const prompt = `Cinematic scene, ${murdererName}, ${method}, ${setting}, film noir, dramatic low-key lighting, painterly, dark, atmospheric`
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1280&height=720&seed=${seed}&nologo=true`
 }
 
 // Preload into browser cache by creating Image objects
