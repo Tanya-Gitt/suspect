@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore } from "@/store/gameStore"
-import { prefetchCaseImages, sceneBackgroundUrl } from "@/lib/images"
+import { prefetchCaseImages, sceneBackgroundUrl, suspectPortraitUrl } from "@/lib/images"
 import { DifficultyMode, DIFFICULTY_LABELS } from "@/types"
 import { ChevronRight, User } from "lucide-react"
 import { proceduralAudio } from "@/lib/audio-engine"
@@ -67,22 +67,23 @@ export function CaseBriefing() {
     }
   }, [session?.id])
 
-  // Pre-fetch images in background while player reads briefing
+  // Ensure image URLs are set (they're normally set upstream in DifficultySelect/MainMenu,
+  // but this is a safety net for any edge case)
   useEffect(() => {
     if (!session?.casePublic) return
-
     const { suspects, setting } = session.casePublic
     const seed = session.id.slice(0, 8)
+    const numSeed = parseInt(seed, 16) || 1
 
-    // Generate URLs
-    const bgUrl = sceneBackgroundUrl(setting, seed)
-    setBackgroundUrl(bgUrl)
-
-    // Prefetch all portraits
-    prefetchCaseImages(suspects, setting, seed).then((urls) => {
-      Object.entries(urls).forEach(([id, url]) => setImageUrl(id, url))
-      setImagesLoaded(true)
+    if (!useGameStore.getState().backgroundUrl) {
+      setBackgroundUrl(sceneBackgroundUrl(setting, seed))
+    }
+    suspects.forEach((s, i) => {
+      if (!useGameStore.getState().imageUrls[s.id]) {
+        setImageUrl(s.id, suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1))
+      }
     })
+    setImagesLoaded(true)
   }, [session, setBackgroundUrl, setImageUrl, setImagesLoaded])
 
   if (!session) return null

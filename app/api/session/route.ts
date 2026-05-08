@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createSession, sanitizeSession } from "@/lib/sessions"
+import { createSession, getSession, sanitizeSession } from "@/lib/sessions"
 import { ALL_CASES } from "@/cases/blackwood-manor"
 import { DifficultyMode } from "@/types"
 
@@ -15,5 +15,26 @@ export async function POST(req: NextRequest) {
   }
 
   const session = createSession(gameCase, difficulty)
+  return NextResponse.json(sanitizeSession(session, gameCase))
+}
+
+// Resume an existing session by ID
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+  if (!id || id.length > 64) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 })
+  }
+
+  const session = getSession(id)
+  if (!session) {
+    return NextResponse.json({ error: "Session not found or expired" }, { status: 404 })
+  }
+
+  const gameCase = ALL_CASES.find((c) => c.id === session.caseId)
+  if (!gameCase) {
+    return NextResponse.json({ error: "Case not found" }, { status: 404 })
+  }
+
   return NextResponse.json(sanitizeSession(session, gameCase))
 }

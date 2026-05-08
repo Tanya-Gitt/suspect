@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore } from "@/store/gameStore"
 import { DifficultyMode, DIFFICULTY_LABELS, DIFFICULTY_DURATIONS } from "@/types"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { suspectPortraitUrl, sceneBackgroundUrl } from "@/lib/images"
 
 const DIFFICULTIES: {
   mode: DifficultyMode
@@ -70,6 +71,17 @@ export function DifficultySelect() {
 
       // Load into store
       useGameStore.getState().loadSession(session)
+
+      // Pre-generate image URLs immediately so portraits are ready in briefing
+      const seed = session.id.slice(0, 8)
+      const numSeed = parseInt(seed, 16) || 1
+      useGameStore.getState().setBackgroundUrl(sceneBackgroundUrl(session.casePublic.setting, seed))
+      session.casePublic.suspects.forEach((s: { id: string; name: string; appearance: string }, i: number) => {
+        useGameStore.getState().setImageUrl(
+          s.id,
+          suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1)
+        )
+      })
 
       // Save slot
       useGameStore.getState().upsertSaveSlot({

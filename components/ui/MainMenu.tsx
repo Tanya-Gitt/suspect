@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore, SaveSlot } from "@/store/gameStore"
 import { DIFFICULTY_LABELS, DifficultyMode } from "@/types"
 import { BookOpen, Play, RotateCcw, Volume2, VolumeX, Trash2 } from "lucide-react"
+import { suspectPortraitUrl, sceneBackgroundUrl } from "@/lib/images"
 
 const TAGLINE_PHRASES = [
   "Everyone is lying.",
@@ -46,21 +47,27 @@ export function MainMenu() {
   }
 
   async function handleContinue(slot: SaveSlot) {
-    // Re-fetch session from server
     try {
-      const res = await fetch(`/api/save?id=${slot.sessionId}`)
+      // Fetch the full session from the server
+      const res = await fetch(`/api/session?id=${slot.sessionId}`)
       if (!res.ok) {
-        // Session expired — remove slot
+        // Session expired (server restarted) — remove stale slot
         removeSaveSlot(slot.sessionId)
         return
       }
-      // We have a valid server session — go to briefing to reload case
-      // The full session is fetched inside CaseBriefing
-      useGameStore.setState({
-        selectedCaseId: slot.caseId,
-        selectedDifficulty: slot.difficulty,
+      const session = await res.json()
+      // Load into store so briefing can render immediately
+      loadSession(session)
+      // Pre-generate image URLs so portraits are ready
+      const seed = session.id.slice(0, 8)
+      const numSeed = parseInt(seed, 16) || 1
+      useGameStore.getState().setBackgroundUrl(sceneBackgroundUrl(session.casePublic.setting, seed))
+      session.casePublic.suspects.forEach((s: { id: string; name: string; appearance: string }, i: number) => {
+        useGameStore.getState().setImageUrl(
+          s.id,
+          suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1)
+        )
       })
-      // Store session ID so briefing can fetch it
       sessionStorage.setItem("resume_session_id", slot.sessionId)
       setPhase("briefing")
     } catch {
