@@ -20,6 +20,8 @@ export function MainMenu() {
   const [showSlots, setShowSlots] = useState(false)
   const [deletingSlot, setDeletingSlot] = useState<string | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [continuingSlot, setContinuingSlot] = useState<string | null>(null)
+  const [continueError, setContinueError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Cycle taglines
@@ -47,15 +49,36 @@ export function MainMenu() {
   }
 
   async function handleContinue(slot: SaveSlot) {
+    setContinuingSlot(slot.sessionId)
+    setContinueError(null)
     try {
-      // Fetch the full session from the server
+      // Try to fetch the existing session from the server
+      let session: ReturnType<typeof JSON.parse> | null = null
       const res = await fetch(`/api/session?id=${slot.sessionId}`)
-      if (!res.ok) {
-        // Session expired (server restarted) — remove stale slot
-        removeSaveSlot(slot.sessionId)
-        return
+
+      if (res.ok) {
+        session = await res.json()
+      } else {
+        // Session expired (server restarted) — silently recreate it
+        // so the user doesn't lose their save slot metadata
+        const recreateRes = await fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ caseId: slot.caseId, difficulty: slot.difficulty }),
+        })
+        if (!recreateRes.ok) {
+          const err = await recreateRes.json()
+          throw new Error(err.error || "Failed to resume session")
+        }
+        session = await recreateRes.json()
+        // Update the slot with the new sessionId
+        useGameStore.getState().upsertSaveSlot({
+          ...slot,
+          sessionId: session.id,
+          lastPlayedAt: Date.now(),
+        })
       }
-      const session = await res.json()
+
       // Load into store so briefing can render immediately
       loadSession(session)
       // Pre-generate image URLs so portraits are ready
@@ -68,10 +91,12 @@ export function MainMenu() {
           suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1)
         )
       })
-      sessionStorage.setItem("resume_session_id", slot.sessionId)
+      sessionStorage.setItem("current_session_id", session.id)
       setPhase("briefing")
-    } catch {
-      removeSaveSlot(slot.sessionId)
+    } catch (err: unknown) {
+      setContinueError(err instanceof Error ? err.message : "Could not load session. Try starting a new investigation.")
+    } finally {
+      setContinuingSlot(null)
     }
   }
 
@@ -204,8 +229,14 @@ export function MainMenu() {
                       }, 300)
                     }}
                     deleting={deletingSlot === slot.sessionId}
+                    loading={continuingSlot === slot.sessionId}
                   />
                 ))}
+                {continueError && (
+                  <p className="text-[#F43F5E] text-xs mt-1 px-1" style={{ fontFamily: "var(--font-jetbrains)" }}>
+                    {continueError}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -298,11 +329,13 @@ function SaveSlotRow({
   onContinue,
   onDelete,
   deleting,
+  loading,
 }: {
   slot: SaveSlot
   onContinue: () => void
   onDelete: () => void
   deleting: boolean
+  loading?: boolean
 }) {
   const daysAgo = Math.floor((Date.now() - slot.lastPlayedAt) / 86400000)
   const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`
@@ -328,14 +361,29 @@ function SaveSlotRow({
       </div>
       <button
         onClick={onContinue}
-        className="text-xs text-[#7C3AED] hover:text-white px-3 py-1.5 border border-[#7C3AED]/40 hover:bg-[#7C3AED] rounded transition-all"
+        disabled={loading}
+        className={`text-xs px-3 py-1.5 border rounded transition-all flex items-center gap-1.5 ${
+          loading
+            ? "text-[#6B7280] border-[#2A2A4A] cursor-not-allowed"
+            : "text-[#7C3AED] hover:text-white border-[#7C3AED]/40 hover:bg-[#7C3AED]"
+        }`}
         style={{ minWidth: 70, minHeight: 32 }}
       >
-        {slot.status === "active" ? "Continue" : "Replay"}
+        {loading ? (
+          <>
+            <svg className="animate-spin" width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+            Loading…
+          </>
+        ) : (
+          slot.status === "active" ? "Continue" : "Replay"
+        )}
       </button>
       <button
         onClick={onDelete}
-        className="text-[#6B7280] hover:text-[#F43F5E] transition-colors p-1.5"
+        disabled={loading}
+        className="text-[#6B7280] hover:text-[#F43F5E] transition-colors p-1.5 disabled:opacity-30"
         aria-label="Delete save"
       >
         ✕
