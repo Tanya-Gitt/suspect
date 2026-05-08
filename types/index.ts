@@ -19,10 +19,13 @@ export const DIFFICULTY_DURATIONS: Record<DifficultyMode, string> = {
 export type MoodState = "calm" | "evasive" | "nervous" | "cracking" | "caught"
 
 // ─── Suspects ────────────────────────────────────────────────────────────────
+export type SuspectSex = "male" | "female" | "nb"
+
 export interface SuspectPublic {
   id: string
   name: string
   age: number
+  sex?: SuspectSex          // used to pick gender-appropriate portrait style
   occupation: string
   appearance: string        // physical description for image generation
   portrait?: string         // generated image URL (populated at runtime)
@@ -82,13 +85,12 @@ export interface GameCase {
     method: string
     fullTruth: string       // narrative reveal paragraph
   }
-  // Per-difficulty overrides
-  byDifficulty: {
-    rookie: { evasiveness: 1; clueFrequency: "high"; redHerrings: 0 }
-    detective: { evasiveness: 2; clueFrequency: "medium"; redHerrings: 1 }
-    inspector: { evasiveness: 3; clueFrequency: "low"; redHerrings: 2 }
-    true_detective: { evasiveness: 4; clueFrequency: "very_low"; redHerrings: 2 }
-  }
+  // Per-difficulty overrides. Numbers and frequency are tunable per-case.
+  byDifficulty: Record<DifficultyMode, {
+    evasiveness: number
+    clueFrequency: "high" | "medium" | "low" | "very_low"
+    redHerrings: number
+  }>
 }
 
 // ─── Session (server-side, never expose solution/systemPrompt) ───────────────

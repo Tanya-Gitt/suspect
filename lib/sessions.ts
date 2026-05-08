@@ -77,8 +77,8 @@ export function sanitizeSession(session: GameSession, gameCase: GameCase) {
       setting: gameCase.setting,
       victim: gameCase.victim,
       knownFacts: gameCase.knownFacts,
-      suspects: gameCase.suspects.map(({ id, name, age, occupation, appearance, backstory, relationship, portrait }) => ({
-        id, name, age, occupation, appearance, backstory, relationship, portrait,
+      suspects: gameCase.suspects.map(({ id, name, age, sex, occupation, appearance, backstory, relationship, portrait }) => ({
+        id, name, age, sex, occupation, appearance, backstory, relationship, portrait,
       })),
     },
   }

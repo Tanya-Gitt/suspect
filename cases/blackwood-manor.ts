@@ -30,6 +30,7 @@ export const blackwoodManor: GameCase = {
       id: "victor",
       name: "Victor Blackwood",
       age: 52,
+      sex: "male",
       occupation: "Edmund's son — failed property developer",
       appearance: "Heavy-set, red-faced, expensive suit slightly too tight, signet ring, smell of whisky",
       relationship: "Son — stood to inherit £4.2 million under the old will, nothing under the new one",
@@ -64,6 +65,7 @@ Do NOT mention: the glove, the window, or the exact timing of when you entered t
       id: "clara",
       name: "Clara Reeves",
       age: 34,
+      sex: "female",
       occupation: "Private nurse — employed by Edmund for 3 years",
       appearance: "Quiet, precise, pale, nurse's lanyard still on at 11 PM, dark circles under her eyes",
       relationship: "Personal nurse — lived in the manor, knew Edmund's medication intimately",
@@ -96,6 +98,7 @@ Your emotional state: exhausted, guilty (about the pill organizer), quietly reli
       id: "margaret",
       name: "Margaret Voss",
       age: 61,
+      sex: "female",
       occupation: "Edmund's estranged sister — recently returned after 20 years",
       appearance: "Sharp-eyed, silver hair pulled back severely, wears mourning black already, unnervingly composed",
       relationship: "Sister — cut out of Edmund's life after a dispute over their parents' estate in 2004",
@@ -147,4 +150,3 @@ That is the Blackwood inheritance.`,
   },
 }
 
-export const ALL_CASES: GameCase[] = [blackwoodManor]

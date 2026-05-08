@@ -25,6 +25,8 @@ function deriveImageUrls(session: ClientSession): {
       s.appearance,
       session.casePublic.era ?? "Present Day",
       numSeed + i + 1,
+      s.sex,
+      s.age,
     )
   })
   const backgroundUrl = sceneBackgroundUrl(session.casePublic.setting, seed)

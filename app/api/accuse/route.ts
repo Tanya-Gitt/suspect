@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, updateSession } from "@/lib/sessions"
-import { ALL_CASES } from "@/cases/blackwood-manor"
+import { ALL_CASES } from "@/cases"
 import { AccusePayload, AccuseResult } from "@/types"
 
 export async function POST(req: NextRequest) {

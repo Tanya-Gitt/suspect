@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { SuspectPublic, SuspectSessionState, MoodState } from "@/types"
 import { User } from "lucide-react"
@@ -21,6 +21,16 @@ const MOOD_FILTER: Record<MoodState, string> = {
   caught:   "brightness(0.65) saturate(0.4) contrast(1.3)",
 }
 
+// Pressure bar: combine mood (dominant) with exchange count (steady ticks).
+// A "caught" suspect on first exchange should show ~full pressure.
+const MOOD_PRESSURE: Record<MoodState, number> = {
+  calm:     0.10,
+  evasive:  0.30,
+  nervous:  0.55,
+  cracking: 0.80,
+  caught:   1.00,
+}
+
 interface SuspectPanelProps {
   suspect: SuspectPublic
   suspectState?: SuspectSessionState
@@ -31,33 +41,16 @@ interface SuspectPanelProps {
 export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectPanelProps) {
   const moodColor = MOOD_COLORS[mood]
   const exchangeCount = suspectState?.exchangeCount ?? 0
-  const moodProgress = Math.min(exchangeCount / 100, 1) // 0–1 for visual progress
+  // Pressure = mood baseline + small per-exchange tick, capped at 1.0
+  const moodProgress = Math.min(MOOD_PRESSURE[mood] + exchangeCount * 0.03, 1)
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Reset state when suspect changes
+  // Reset on imageUrl change
   useEffect(() => {
     setImgLoaded(false)
     setImgError(false)
-    setRetryCount(0)
   }, [imageUrl])
-
-  // Cleanup timer on unmount
-  useEffect(() => () => { if (retryTimer.current) clearTimeout(retryTimer.current) }, [])
-
-  function handleImgError() {
-    if (retryCount < 3) {
-      // Retry after a delay — Pollinations has transient 500s
-      retryTimer.current = setTimeout(() => {
-        setImgError(false)  // clear error → triggers re-render → browser re-requests
-        setRetryCount((n) => n + 1)
-      }, 5000 + retryCount * 3000) // 5s, 8s, 11s
-    } else {
-      setImgError(true)
-    }
-  }
 
   return (
     <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto">
@@ -75,17 +68,11 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
           }}
           transition={{ duration: 1 }}
         >
-          {/* Placeholder always present — hidden once image loads */}
+          {/* Placeholder shown until image loads */}
           {(!imgLoaded || imgError || !imageUrl) && (
-            <div className="absolute inset-0 bg-[#16162A] flex flex-col items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-[#16162A] flex flex-col items-center justify-center gap-2 z-0">
               {imageUrl && !imgError ? (
-                /* Loading shimmer */
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-full border-2 border-[#2A2A4A] border-t-[#7C3AED] animate-spin" />
-                  <p className="text-[#6B7280] text-xs" style={{ fontFamily: "var(--font-jetbrains)" }}>
-                    {retryCount > 0 ? `Retrying… (${retryCount}/3)` : "Generating portrait…"}
-                  </p>
-                </div>
+                <div className="w-full h-full bg-gradient-to-br from-[#1F1F3A] via-[#2A2A4A] to-[#1F1F3A] animate-pulse" />
               ) : (
                 <User size={48} className="text-[#2A2A4A]" />
               )}
@@ -93,16 +80,18 @@ export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectP
           )}
 
           {imageUrl && !imgError && (
-            <motion.img
-              key={`${imageUrl}-${retryCount}`}
-              src={retryCount > 0 ? `${imageUrl}&_r=${retryCount}` : imageUrl}
+            <img
+              key={imageUrl}
+              src={imageUrl}
               alt={suspect.name}
-              className="w-full h-full object-cover"
-              style={{ opacity: imgLoaded ? 1 : 0 }}
-              animate={{ filter: MOOD_FILTER[mood], opacity: imgLoaded ? 1 : 0 }}
-              transition={{ duration: imgLoaded ? 1.5 : 0.8, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+              style={{
+                opacity: imgLoaded ? 1 : 0,
+                filter: MOOD_FILTER[mood],
+                transition: "opacity 0.7s ease, filter 1s ease",
+              }}
               onLoad={() => setImgLoaded(true)}
-              onError={handleImgError}
+              onError={() => setImgError(true)}
             />
           )}
         </motion.div>

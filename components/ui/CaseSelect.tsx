@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { useGameStore } from "@/store/gameStore"
 import { ArrowLeft, Clock, AlertTriangle } from "lucide-react"
 
-// For now we show the one authored case. More cases can be added here.
+// Three authored cases — all playable. Difficulty scales with suspect count.
 const AVAILABLE_CASES = [
   {
     id: "blackwood-manor",
@@ -20,30 +20,30 @@ const AVAILABLE_CASES = [
     locked: false,
   },
   {
-    id: "coming-soon-1",
-    title: "The Red Thread",
-    tagline: "A fashion designer. A strangled model. Six people who wanted her gone.",
-    tone: "horror",
-    era: "Present Day",
-    setting: "Paris fashion week",
-    victim: "Isabelle Verne, 28",
-    suspects: 6,
-    estimatedTime: "1 – 5 hours",
-    contentWarning: "Coming soon",
-    locked: true,
-  },
-  {
-    id: "coming-soon-2",
+    id: "harbor-light",
     title: "The Harbor Light",
     tagline: "A lighthouse keeper. A missing fisherman. An island with no exits.",
     tone: "suspense",
-    era: "1940s",
-    setting: "Remote Scottish island, stormy winter",
-    victim: "Thomas Crane, 44",
+    era: "1947",
+    setting: "Remote Scottish island, autumn gale, lighthouse",
+    victim: "Hamish McRae, 41",
     suspects: 4,
     estimatedTime: "1 – 3 hours",
-    contentWarning: "Coming soon",
-    locked: true,
+    contentWarning: "Cold-blooded killer with a 22-year secret. Witnesses who lie out of grief, not guilt.",
+    locked: false,
+  },
+  {
+    id: "red-thread",
+    title: "The Red Thread",
+    tagline: "A fashion muse. A strangled model. Five people who wanted her gone.",
+    tone: "twist",
+    era: "Present Day",
+    setting: "Paris haute couture, the night before the show",
+    victim: "Inès Vexille, 26",
+    suspects: 5,
+    estimatedTime: "2 – 5 hours",
+    contentWarning: "Eight-year revenge plot. Two red herrings. The murderer is not who you think.",
+    locked: false,
   },
 ]
 

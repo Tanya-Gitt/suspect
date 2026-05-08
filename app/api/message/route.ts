@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, updateSession } from "@/lib/sessions"
 import { sendSuspectMessage, classifyMood } from "@/lib/orchestrator"
-import { ALL_CASES } from "@/cases/blackwood-manor"
+import { ALL_CASES } from "@/cases"
 import { SendMessagePayload, ConversationTurn, MoodState } from "@/types"
 
 // Simple in-memory rate limiting per session

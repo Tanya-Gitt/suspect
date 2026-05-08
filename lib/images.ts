@@ -2,18 +2,27 @@
 // Pollinations rate-limits aggressively when 3+ portraits load at once.
 // DiceBear returns SVGs in <100ms with no rate limits, no API key.
 
+import type { SuspectSex } from "@/types"
+
 export function suspectPortraitUrl(
   name: string,
   _appearance: string,
   _era: string,
-  seed: number | string
+  seed: number | string,
+  sex?: SuspectSex,
+  age?: number,
 ): string {
-  // Use name + seed so each suspect gets a distinct, deterministic portrait
-  const dicebearSeed = `${name}-${seed}`
-  // notionists style: stylized illustrated portraits with a more serious,
-  // editorial feel that fits the noir/detective aesthetic better than
-  // the cartoonier styles. Dark background matches the game palette.
-  return `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(dicebearSeed)}&backgroundColor=1F1F3A,16162A,2A2A4A&backgroundType=gradientLinear&radius=0`
+  // Pick a DiceBear style by sex for clear visual gender separation:
+  //   female → lorelei (illustrated, softer features, more feminine)
+  //   male   → notionists (editorial style, masculine-leaning by default)
+  //   nb / unknown → notionists-neutral
+  const style = sex === "female" ? "lorelei" : sex === "nb" ? "notionists-neutral" : "notionists"
+
+  // Build a deterministic seed that varies by name + age + seed.
+  // Including age ensures young vs old suspects get different appearances.
+  const dicebearSeed = `${name}-${age ?? 0}-${seed}`
+
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(dicebearSeed)}&backgroundColor=1F1F3A,16162A,2A2A4A&backgroundType=gradientLinear&radius=0`
 }
 
 export function sceneBackgroundUrl(setting: string, seed: number | string): string {
