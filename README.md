@@ -125,7 +125,7 @@ suspect/
 
 **1. Clone & install**
 ```bash
-git clone https://github.com/yourusername/suspect.git
+git clone https://github.com/Tanya-Gitt/suspect.git
 cd suspect
 npm install
 ```
