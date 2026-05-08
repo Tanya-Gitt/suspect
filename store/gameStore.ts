@@ -9,6 +9,26 @@ import {
   AccuseResult,
   ConversationTurn,
 } from "@/types"
+import { suspectPortraitUrl, sceneBackgroundUrl } from "@/lib/images"
+
+/** Derive image URLs from a session in one shot — no async, no race conditions. */
+function deriveImageUrls(session: ClientSession): {
+  imageUrls: Record<string, string>
+  backgroundUrl: string
+} {
+  const seed = session.id.slice(0, 8)
+  const numSeed = parseInt(seed, 16) || 1
+  const imageUrls: Record<string, string> = {}
+  session.casePublic.suspects.forEach((s, i) => {
+    imageUrls[s.id] = suspectPortraitUrl(
+      s.name,
+      s.appearance,
+      session.casePublic.era ?? "Present Day",
+      numSeed + i + 1,
+    )
+  })
+  return { imageUrls, backgroundUrl: sceneBackgroundUrl(session.casePublic.setting, seed) }
+}
 
 // ─── UI Phases ────────────────────────────────────────────────────────────────
 export type GamePhase =
@@ -155,7 +175,8 @@ export const useGameStore = create<GameState>()(
       setTransitioning: (isTransitioning) => set({ isTransitioning }),
 
       // ── Session ──
-      loadSession: (session) =>
+      loadSession: (session) => {
+        const { imageUrls, backgroundUrl } = deriveImageUrls(session)
         set({
           session,
           currentSuspectId: session.currentSuspectId ?? session.casePublic.suspects[0]?.id ?? null,
@@ -163,11 +184,12 @@ export const useGameStore = create<GameState>()(
           playerNotes: session.playerNotes ?? "",
           accuseResult: null,
           accusedSuspectId: null,
-          imageUrls: {},
-          backgroundUrl: null,
-          imagesLoaded: false,
+          imageUrls,
+          backgroundUrl,
+          imagesLoaded: true,
           streamingState: { isStreaming: false, suspectId: null, buffer: "" },
-        }),
+        })
+      },
 
       clearSession: () =>
         set({

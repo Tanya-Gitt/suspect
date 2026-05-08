@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore } from "@/store/gameStore"
-import { prefetchCaseImages, sceneBackgroundUrl, suspectPortraitUrl } from "@/lib/images"
 import { DifficultyMode, DIFFICULTY_LABELS } from "@/types"
 import { ChevronRight, User } from "lucide-react"
 import { proceduralAudio } from "@/lib/audio-engine"
@@ -47,10 +46,8 @@ export function CaseBriefing() {
     session,
     setPhase,
     setCurrentSuspect,
-    setImageUrl,
-    setBackgroundUrl,
-    setImagesLoaded,
     imageUrls,
+    backgroundUrl,
     imagesLoaded,
     upsertSaveSlot,
   } = useGameStore()
@@ -66,25 +63,6 @@ export function CaseBriefing() {
       sessionStorage.removeItem("resume_session_id")
     }
   }, [session?.id])
-
-  // Ensure image URLs are set (they're normally set upstream in DifficultySelect/MainMenu,
-  // but this is a safety net for any edge case)
-  useEffect(() => {
-    if (!session?.casePublic) return
-    const { suspects, setting } = session.casePublic
-    const seed = session.id.slice(0, 8)
-    const numSeed = parseInt(seed, 16) || 1
-
-    if (!useGameStore.getState().backgroundUrl) {
-      setBackgroundUrl(sceneBackgroundUrl(setting, seed))
-    }
-    suspects.forEach((s, i) => {
-      if (!useGameStore.getState().imageUrls[s.id]) {
-        setImageUrl(s.id, suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1))
-      }
-    })
-    setImagesLoaded(true)
-  }, [session, setBackgroundUrl, setImageUrl, setImagesLoaded])
 
   if (!session) return null
 
@@ -127,7 +105,7 @@ export function CaseBriefing() {
         <div
           className="absolute inset-0 bg-center bg-cover"
           style={{
-            backgroundImage: `url(${sceneBackgroundUrl(casePublic.setting, session.id.slice(0, 8))})`,
+            backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : undefined,
             filter: "brightness(0.15) blur(2px)",
           }}
         />
@@ -363,6 +341,38 @@ function FactsStep({ facts, onNext }: { facts: string[]; onNext: () => void }) {
   )
 }
 
+/** Small portrait thumbnail with shimmer-while-loading and user-icon fallback */
+function SuspectThumb({ imageUrl, name }: { imageUrl?: string; name: string }) {
+  const [loaded, setLoaded] = useState(false)
+  const [errored, setErrored] = useState(false)
+
+  return (
+    <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#2A2A4A] flex-shrink-0 relative bg-[#1F1F3A]">
+      {/* Shimmer / fallback layer */}
+      {(!loaded || errored) && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          {imageUrl && !errored ? (
+            // Pulsing shimmer while Pollinations generates
+            <div className="w-full h-full bg-gradient-to-br from-[#1F1F3A] via-[#2A2A4A] to-[#1F1F3A] animate-pulse" />
+          ) : (
+            <User size={20} className="text-[#6B7280]" />
+          )}
+        </div>
+      )}
+      {imageUrl && !errored && (
+        <img
+          src={imageUrl}
+          alt={name}
+          className="w-full h-full object-cover transition-opacity duration-500"
+          style={{ opacity: loaded ? 1 : 0 }}
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+        />
+      )}
+    </div>
+  )
+}
+
 function SuspectsStep({
   suspects,
   imageUrls,
@@ -402,20 +412,7 @@ function SuspectsStep({
               }`}
             >
               {/* Portrait */}
-              <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#2A2A4A] flex-shrink-0 bg-[#1F1F3A] flex items-center justify-center">
-                {imageUrls[s.id] ? (
-                  <img
-                    src={imageUrls[s.id]}
-                    alt={s.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = "none"
-                    }}
-                  />
-                ) : (
-                  <User size={20} className="text-[#6B7280]" />
-                )}
-              </div>
+              <SuspectThumb imageUrl={imageUrls[s.id]} name={s.name} />
 
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>

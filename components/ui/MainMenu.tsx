@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useGameStore, SaveSlot } from "@/store/gameStore"
 import { DIFFICULTY_LABELS, DifficultyMode } from "@/types"
 import { BookOpen, Play, RotateCcw, Volume2, VolumeX, Trash2 } from "lucide-react"
-import { suspectPortraitUrl, sceneBackgroundUrl } from "@/lib/images"
 
 const TAGLINE_PHRASES = [
   "Everyone is lying.",
@@ -79,18 +78,8 @@ export function MainMenu() {
         })
       }
 
-      // Load into store so briefing can render immediately
+      // loadSession now derives image URLs atomically — no extra calls needed
       loadSession(session)
-      // Pre-generate image URLs so portraits are ready
-      const seed = session.id.slice(0, 8)
-      const numSeed = parseInt(seed, 16) || 1
-      useGameStore.getState().setBackgroundUrl(sceneBackgroundUrl(session.casePublic.setting, seed))
-      session.casePublic.suspects.forEach((s: { id: string; name: string; appearance: string }, i: number) => {
-        useGameStore.getState().setImageUrl(
-          s.id,
-          suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "Present Day", numSeed + i + 1)
-        )
-      })
       sessionStorage.setItem("current_session_id", session.id)
       setPhase("briefing")
     } catch (err: unknown) {
