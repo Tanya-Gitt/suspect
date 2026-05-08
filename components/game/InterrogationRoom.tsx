@@ -9,6 +9,7 @@ import { Notebook } from "@/components/game/Notebook"
 import { BookMarked, Gavel, Menu, Volume2, VolumeX, User } from "lucide-react"
 import { nanoid } from "nanoid"
 import { proceduralAudio } from "@/lib/audio-engine"
+import { suspectPortraitUrl, sceneBackgroundUrl } from "@/lib/images"
 
 const MOOD_COLORS: Record<MoodState, string> = {
   calm:     "#7C3AED",
@@ -58,6 +59,39 @@ export function InterrogationRoom() {
 
   const currentSuspect = allSuspects.find((s) => s.id === currentSuspectId)
   const suspectState = session?.suspects[currentSuspectId ?? ""]
+
+  // Self-healing image loader — generates URLs if briefing was skipped or store was reset
+  const { setImageUrl, setBackgroundUrl } = useGameStore()
+  useEffect(() => {
+    if (!session?.casePublic) return
+    const { suspects, setting } = session.casePublic
+    const seed = session.id.slice(0, 8)
+    const numSeed = parseInt(seed, 16) || 1
+
+    suspects.forEach((s, i) => {
+      if (!imageUrls[s.id]) {
+        setImageUrl(s.id, suspectPortraitUrl(s.name, s.appearance, session.casePublic.era ?? "present day", numSeed + i + 1))
+      }
+    })
+    if (!useGameStore.getState().backgroundUrl) {
+      setBackgroundUrl(sceneBackgroundUrl(setting, seed))
+    }
+  }, [session, imageUrls, setImageUrl, setBackgroundUrl])
+
+  // Typewriter ticks during AI streaming
+  const prevBufLen = useRef(0)
+  useEffect(() => {
+    if (!streamingState.isStreaming) { prevBufLen.current = 0; return }
+    const cur = streamingState.buffer.length
+    if (cur > prevBufLen.current) {
+      const added = cur - prevBufLen.current
+      // Play a tick every ~4 new characters
+      if (Math.floor(cur / 4) > Math.floor(prevBufLen.current / 4)) {
+        proceduralAudio.typeKey()
+      }
+      prevBufLen.current = cur
+    }
+  }, [streamingState.buffer, streamingState.isStreaming])
 
   // Auto-scroll
   useEffect(() => {

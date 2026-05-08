@@ -21,11 +21,11 @@ const MOOD: Record<MoodState, {
   hiGain: number
   sweepRate: number // how fast the filter breathes (Hz)
 }> = {
-  calm:     { lo: 80,   loGain: 0.18, mid: 300,  midGain: 0.04, hi: 1200, hiGain: 0.01, sweepRate: 0.08 },
-  evasive:  { lo: 100,  loGain: 0.20, mid: 500,  midGain: 0.06, hi: 2000, hiGain: 0.02, sweepRate: 0.15 },
-  nervous:  { lo: 120,  loGain: 0.22, mid: 700,  midGain: 0.09, hi: 3000, hiGain: 0.04, sweepRate: 0.30 },
-  cracking: { lo: 140,  loGain: 0.26, mid: 900,  midGain: 0.13, hi: 4000, hiGain: 0.07, sweepRate: 0.55 },
-  caught:   { lo: 60,   loGain: 0.28, mid: 200,  midGain: 0.06, hi: 600,  hiGain: 0.02, sweepRate: 0.06 },
+  calm:     { lo: 80,   loGain: 0.40, mid: 300,  midGain: 0.15, hi: 1200, hiGain: 0.05, sweepRate: 0.08 },
+  evasive:  { lo: 100,  loGain: 0.45, mid: 500,  midGain: 0.20, hi: 2000, hiGain: 0.08, sweepRate: 0.15 },
+  nervous:  { lo: 120,  loGain: 0.50, mid: 700,  midGain: 0.28, hi: 3000, hiGain: 0.12, sweepRate: 0.30 },
+  cracking: { lo: 140,  loGain: 0.55, mid: 900,  midGain: 0.35, hi: 4000, hiGain: 0.18, sweepRate: 0.55 },
+  caught:   { lo: 60,   loGain: 0.60, mid: 200,  midGain: 0.18, hi: 600,  hiGain: 0.06, sweepRate: 0.06 },
 }
 
 const PHASE_MOOD: Partial<Record<GamePhase, MoodState>> = {
@@ -76,7 +76,7 @@ class ProceduralAudioEngine {
   private lfoCtx: { osc: OscillatorNode; gain: GainNode } | null = null
 
   private _enabled = true
-  private _volume = 0.6
+  private _volume = 1.0
   private initialized = false
   private currentMood: MoodState | null = null
   private sweepTimer: ReturnType<typeof setInterval> | null = null
@@ -148,13 +148,18 @@ class ProceduralAudioEngine {
     if (mood === this.currentMood && fadeSecs > 0) return
     this.currentMood = mood
 
+    // Resume context if browser suspended it (happens after inactivity)
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {})
+    }
+
     const p = MOOD[mood]
     const now = this.ctx.currentTime
     const end = now + Math.max(fadeSecs, 0.1)
     const v = this._enabled ? this._volume : 0
 
-    // Ambient master stays quiet — noise sits UNDER everything
-    const ambLevel = v * 0.22
+    // Ambient — audible but sits under UI sounds
+    const ambLevel = v * 0.45
     this.master?.gain.linearRampToValueAtTime(ambLevel, end)
 
     this.loBand?.filter.frequency.linearRampToValueAtTime(p.lo, end)

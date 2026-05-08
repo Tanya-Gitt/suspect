@@ -77,6 +77,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (phase !== "interrogation") {
       proceduralAudio.setPhaseAtmosphere(phase)
       proceduralAudio.whoosh()
+    } else {
+      // Force-reset mood tracker so interrogation atmosphere always plays,
+      // even if the mood hasn't changed from the menu's "calm"
+      prevMood.current = null
     }
     if (phase === "accusation") setTimeout(() => proceduralAudio.playAccusation(), 800)
   }, [phase])
@@ -91,12 +95,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     proceduralAudio.setMood(mood, 2.5)
   })
 
-  // ── Streaming → typewriter tick ───────────────────────────────────────────
+  // ── Streaming → typewriter tick (handled per-char in InterrogationRoom) ──────
   useEffect(() => {
-    if (streaming.isStreaming && !prevStream.current) {
-      prevStream.current = true
-      if (booted.current) proceduralAudio.typeKey()
-    } else if (!streaming.isStreaming) {
+    if (!streaming.isStreaming) {
       prevStream.current = false
     }
   }, [streaming.isStreaming])
