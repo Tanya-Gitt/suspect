@@ -1,21 +1,19 @@
-// ─── Pollinations.ai — free, no API key ──────────────────────────────────────
-// NOTE: do NOT use model=flux — it's unreliable (frequent 500s and timeouts).
-// The default Pollinations model is fast and reliable.
+// ─── Suspect portraits — DiceBear (instant SVG, fully reliable) ──────────────
+// Pollinations rate-limits aggressively when 3+ portraits load at once.
+// DiceBear returns SVGs in <100ms with no rate limits, no API key.
 
 export function suspectPortraitUrl(
   name: string,
-  appearance: string,
-  era: string,
+  _appearance: string,
+  _era: string,
   seed: number | string
 ): string {
-  // Keep the prompt short and visual-only — long prompts trigger 500s
-  const visualDesc = appearance
-    .split(",")
-    .slice(0, 3)
-    .map((s) => s.trim())
-    .join(", ")
-  const prompt = `Film noir portrait of ${name}, ${visualDesc}, dramatic side lighting, dark background, painterly, cinematic`
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=640&seed=${seed}&nologo=true`
+  // Use name + seed so each suspect gets a distinct, deterministic portrait
+  const dicebearSeed = `${name}-${seed}`
+  // notionists style: stylized illustrated portraits with a more serious,
+  // editorial feel that fits the noir/detective aesthetic better than
+  // the cartoonier styles. Dark background matches the game palette.
+  return `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(dicebearSeed)}&backgroundColor=1F1F3A,16162A,2A2A4A&backgroundType=gradientLinear&radius=0`
 }
 
 export function sceneBackgroundUrl(setting: string, seed: number | string): string {
