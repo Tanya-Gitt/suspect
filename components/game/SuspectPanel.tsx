@@ -1,0 +1,125 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { SuspectPublic, SuspectSessionState, MoodState } from "@/types"
+import { User } from "lucide-react"
+
+const MOOD_COLORS: Record<MoodState, string> = {
+  calm:     "#7C3AED",
+  evasive:  "#6B7280",
+  nervous:  "#D4A853",
+  cracking: "#F97316",
+  caught:   "#F43F5E",
+}
+
+const MOOD_FILTER: Record<MoodState, string> = {
+  calm:     "brightness(1) saturate(1)",
+  evasive:  "brightness(0.9) saturate(0.8)",
+  nervous:  "brightness(0.85) saturate(1.2)",
+  cracking: "brightness(0.75) saturate(1.5) contrast(1.1)",
+  caught:   "brightness(0.65) saturate(0.4) contrast(1.3)",
+}
+
+interface SuspectPanelProps {
+  suspect: SuspectPublic
+  suspectState?: SuspectSessionState
+  mood: MoodState
+  imageUrl?: string
+}
+
+export function SuspectPanel({ suspect, suspectState, mood, imageUrl }: SuspectPanelProps) {
+  const moodColor = MOOD_COLORS[mood]
+  const exchangeCount = suspectState?.exchangeCount ?? 0
+  const moodProgress = Math.min(exchangeCount / 10, 1) // 0–1 for visual progress
+
+  return (
+    <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto">
+      {/* Portrait */}
+      <div className="relative">
+        <motion.div
+          className="w-full aspect-square rounded-lg overflow-hidden border-2"
+          style={{
+            borderColor: moodColor,
+            boxShadow: `0 0 20px ${moodColor}30`,
+          }}
+          animate={{
+            borderColor: moodColor,
+            boxShadow: `0 0 20px ${moodColor}30`,
+          }}
+          transition={{ duration: 1 }}
+        >
+          {imageUrl ? (
+            <motion.img
+              src={imageUrl}
+              alt={suspect.name}
+              className="w-full h-full object-cover"
+              animate={{ filter: MOOD_FILTER[mood] }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+            />
+          ) : (
+            <div className="w-full h-full bg-[#16162A] flex items-center justify-center">
+              <User size={48} className="text-[#2A2A4A]" />
+            </div>
+          )}
+        </motion.div>
+
+        {/* Mood badge */}
+        <motion.div
+          className="absolute bottom-2 left-2 right-2 px-3 py-1 rounded text-center text-xs font-bold tracking-[0.15em] uppercase"
+          animate={{ background: moodColor + "CC", color: "#fff" }}
+          transition={{ duration: 0.8 }}
+          style={{ fontFamily: "var(--font-orbitron)", backdropFilter: "blur(8px)" }}
+        >
+          {mood}
+        </motion.div>
+      </div>
+
+      {/* Suspect info */}
+      <div>
+        <h3 className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-orbitron)" }}>
+          {suspect.name}
+        </h3>
+        <p className="text-[#94A3B8] text-xs mt-0.5">{suspect.age} · {suspect.occupation}</p>
+        <p className="text-[#6B7280] text-xs mt-1 italic">{suspect.relationship}</p>
+      </div>
+
+      {/* Tension meter */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-[#6B7280] text-xs tracking-widest uppercase" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+            Pressure
+          </p>
+          <p className="text-xs" style={{ color: moodColor, fontFamily: "var(--font-jetbrains)" }}>
+            {exchangeCount} exchanges
+          </p>
+        </div>
+        <div className="h-1.5 rounded-full bg-[#2A2A4A] overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: `linear-gradient(90deg, #7C3AED, ${moodColor})` }}
+            animate={{ width: `${moodProgress * 100}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
+
+      {/* Backstory */}
+      <div className="border-t border-[#2A2A4A] pt-3">
+        <p className="text-[#6B7280] text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "var(--font-orbitron)", fontSize: "0.6rem" }}>
+          Background
+        </p>
+        <p className="text-[#94A3B8] text-xs leading-relaxed" style={{ fontFamily: "var(--font-jetbrains)" }}>
+          {suspect.backstory}
+        </p>
+      </div>
+
+      {/* Interrogated indicator */}
+      {suspectState?.interrogated && (
+        <div className="flex items-center gap-1.5 text-[#22C55E] text-xs">
+          <span>✓</span>
+          <span style={{ fontFamily: "var(--font-jetbrains)" }}>Interrogated</span>
+        </div>
+      )}
+    </div>
+  )
+}

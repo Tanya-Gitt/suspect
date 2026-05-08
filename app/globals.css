@@ -1,26 +1,294 @@
 @import "tailwindcss";
 
+/* ─── Noir Design System ──────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --noir-bg:        #0F0F23;
+  --noir-surface:   #16162A;
+  --noir-border:    #2A2A4A;
+  --noir-primary:   #7C3AED;
+  --noir-primary-dim: #5B21B6;
+  --noir-accent:    #F43F5E;
+  --noir-gold:      #D4A853;
+  --noir-muted:     #6B7280;
+  --noir-text:      #E2E8F0;
+  --noir-text-dim:  #94A3B8;
+
+  /* Fonts */
+  --font-heading: var(--font-orbitron), "Courier New", monospace;
+  --font-mono:    var(--font-jetbrains), "JetBrains Mono", monospace;
+
+  /* Mood filter transitions */
+  --mood-filter-calm:     brightness(1) saturate(1);
+  --mood-filter-evasive:  brightness(0.9) saturate(0.8) hue-rotate(15deg);
+  --mood-filter-nervous:  brightness(0.85) saturate(1.2) hue-rotate(-10deg);
+  --mood-filter-cracking: brightness(0.75) saturate(1.5) hue-rotate(-20deg) contrast(1.1);
+  --mood-filter-caught:   brightness(0.65) saturate(0.4) contrast(1.3) sepia(0.3);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-noir-bg:         var(--noir-bg);
+  --color-noir-surface:    var(--noir-surface);
+  --color-noir-border:     var(--noir-border);
+  --color-noir-primary:    var(--noir-primary);
+  --color-noir-primary-dim: var(--noir-primary-dim);
+  --color-noir-accent:     var(--noir-accent);
+  --color-noir-gold:       var(--noir-gold);
+  --color-noir-muted:      var(--noir-muted);
+  --color-noir-text:       var(--noir-text);
+  --color-noir-text-dim:   var(--noir-text-dim);
+  --font-sans: var(--font-orbitron);
+  --font-mono: var(--font-jetbrains);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--noir-bg);
+  color: var(--noir-text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Film Grain Overlay ─────────────────────────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+}
+
+/* ─── Vignette ───────────────────────────────────────────────────────────── */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; }
+h2 { font-size: clamp(1.25rem, 3vw, 2rem); font-weight: 700; }
+h3 { font-size: clamp(1rem, 2vw, 1.5rem); font-weight: 600; }
+
+p, li, span {
+  font-family: var(--font-mono);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--noir-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--noir-primary);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--noir-accent);
+}
+
+/* ─── Focus rings (accessibility) ───────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--noir-primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ─── Selection color ────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(124, 58, 237, 0.4);
+  color: #fff;
+}
+
+/* ─── Utility: scanline effect ───────────────────────────────────────────── */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+}
+
+/* ─── Utility: glitch text ───────────────────────────────────────────────── */
+@keyframes glitch-1 {
+  0%, 100% { clip-path: inset(0 0 100% 0); }
+  20% { clip-path: inset(33% 0 33% 0); transform: translate(-3px, 0); }
+  40% { clip-path: inset(66% 0 0% 0); transform: translate(3px, 0); }
+  60% { clip-path: inset(0% 0 66% 0); transform: translate(-1px, 0); }
+  80% { clip-path: inset(50% 0 10% 0); transform: translate(2px, 0); }
+}
+
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  color: var(--noir-accent);
+  animation: glitch-1 3s infinite;
+  opacity: 0.5;
+}
+
+.glitch::after {
+  color: var(--noir-primary);
+  animation: glitch-1 3s infinite 0.1s;
+  opacity: 0.4;
+}
+
+/* ─── Utility: redacted text ─────────────────────────────────────────────── */
+.redacted {
+  background: #1a1a2e;
+  color: transparent;
+  border-radius: 2px;
+  cursor: default;
+  user-select: none;
+  transition: all 0.3s;
+}
+
+.redacted.revealed {
+  background: transparent;
+  color: var(--noir-gold);
+}
+
+/* ─── Utility: typewriter cursor ─────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor::after {
+  content: "▋";
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  color: var(--noir-primary);
+  margin-left: 1px;
+}
+
+/* ─── Utility: mood border glow ──────────────────────────────────────────── */
+.mood-calm     { box-shadow: 0 0 12px rgba(124, 58, 237, 0.2); }
+.mood-evasive  { box-shadow: 0 0 12px rgba(100, 116, 139, 0.3); }
+.mood-nervous  { box-shadow: 0 0 16px rgba(234, 179, 8, 0.25); }
+.mood-cracking { box-shadow: 0 0 20px rgba(244, 63, 94, 0.35); }
+.mood-caught   { box-shadow: 0 0 24px rgba(244, 63, 94, 0.6); }
+
+/* ─── Card base ───────────────────────────────────────────────────────────── */
+.noir-card {
+  background: var(--noir-surface);
+  border: 1px solid var(--noir-border);
+  border-radius: 8px;
+}
+
+/* ─── Button base ─────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--noir-primary);
+  color: white;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  min-height: 44px;
+}
+
+.btn-primary:hover {
+  background: var(--noir-primary-dim);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.5);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-danger {
+  background: var(--noir-accent);
+}
+
+.btn-danger:hover {
+  background: #e11d48;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.5);
+}
+
+/* ─── Chat bubble fade-in ────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.3s ease-out forwards;
+}
+
+/* ─── Pulse dot (for active suspect) ────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--noir-accent);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* ─── Notebook paper texture ─────────────────────────────────────────────── */
+.notebook-paper {
+  background-color: #1a1a0f;
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      rgba(212, 168, 83, 0.12) 27px,
+      rgba(212, 168, 83, 0.12) 28px
+    );
+  background-position: 0 0;
 }
