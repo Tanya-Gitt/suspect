@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSession, updateSession } from "@/lib/sessions"
-import { sendSuspectMessage, classifyMood } from "@/lib/orchestrator"
 import { ALL_CASES } from "@/cases"
-import { SendMessagePayload, ConversationTurn, MoodState } from "@/types"
+import { sendSuspectMessage, classifyMood } from "@/lib/orchestrator"
+import { SendMessagePayload, MoodState } from "@/types"
 
-// Simple in-memory rate limiting per session
-const inFlight = new Set<string>()
+// Stateless — no server-side session lookup needed.
+// The client sends caseId, difficulty, and conversationHistory with every request.
+// The only secret that stays server-side is the suspect's system prompt,
+// which is loaded from the case definition (ALL_CASES).
+
+export const maxDuration = 60 // Vercel Pro: 60s. Hobby: capped at 10s but set the intent.
 
 const MAX_MESSAGE_LENGTH = 500
 
 export async function POST(req: NextRequest) {
   const body = await req.json() as SendMessagePayload
-  const { sessionId, suspectId } = body
+  const {
+    suspectId,
+    caseId,
+    difficulty,
+    conversationHistory,
+    exchangeCount,
+    currentMood,
+  } = body
   const message = typeof body.message === "string" ? body.message.trim() : ""
 
   // Input validation
@@ -24,50 +34,31 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     )
   }
-  if (!sessionId || typeof sessionId !== "string" || sessionId.length > 64) {
-    return NextResponse.json({ error: "Invalid session" }, { status: 400 })
+  if (!caseId || !difficulty || !suspectId) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
-  // Rate limit — one request per session at a time
-  if (inFlight.has(sessionId)) {
-    return NextResponse.json({ error: "Request in progress" }, { status: 429 })
-  }
-
-  const session = getSession(sessionId)
-  if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 })
-  if (session.status !== "active") return NextResponse.json({ error: "Session not active" }, { status: 400 })
-
-  const gameCase = ALL_CASES.find((c) => c.id === session.caseId)
+  const gameCase = ALL_CASES.find((c) => c.id === caseId)
   if (!gameCase) return NextResponse.json({ error: "Case not found" }, { status: 404 })
 
   const suspect = gameCase.suspects.find((s) => s.id === suspectId)
   if (!suspect) return NextResponse.json({ error: "Suspect not found" }, { status: 404 })
 
-  const suspectState = session.suspects[suspectId]
-  if (!suspectState) return NextResponse.json({ error: "Invalid suspect for this session" }, { status: 400 })
-
   const isGuilty = suspect.role === "murderer"
-
-  inFlight.add(sessionId)
-
-  // Add player message to history
-  const playerTurn: ConversationTurn = {
-    role: "player",
-    content: message,
-    timestamp: Date.now(),
-  }
-  suspectState.conversationHistory.push(playerTurn)
-  suspectState.interrogated = true
-  suspectState.exchangeCount += 1
-  updateSession(sessionId, {
-    suspects: { ...session.suspects, [suspectId]: suspectState },
-    currentSuspectId: suspectId,
-  })
+  const safeHistory = Array.isArray(conversationHistory) ? conversationHistory : []
+  const safeExchangeCount = typeof exchangeCount === "number" ? exchangeCount : safeHistory.length
+  const safeMood: MoodState = (currentMood as MoodState) ?? "calm"
 
   try {
-    const stream = await sendSuspectMessage(message, suspect, session, gameCase)
+    const stream = await sendSuspectMessage(
+      message,
+      suspect,
+      gameCase,
+      difficulty,
+      safeHistory
+    )
 
-    // Collect full response to update session after streaming
+    // Collect full response to extract mood after streaming
     let fullResponse = ""
     const decoder = new TextDecoder()
 
@@ -77,60 +68,29 @@ export async function POST(req: NextRequest) {
         fullResponse += text
         controller.enqueue(chunk)
       },
-      flush() {
-        // After stream ends, update session with suspect response + new mood
+      flush(controller) {
         const newMood: MoodState = classifyMood(
           fullResponse,
-          suspectState.exchangeCount,
-          suspectState.currentMood,
+          safeExchangeCount + 1,
+          safeMood,
           isGuilty
         )
-
-        const suspectTurn: ConversationTurn = {
-          role: "suspect",
-          content: fullResponse,
-          timestamp: Date.now(),
-          mood: newMood,
-        }
-
-        suspectState.conversationHistory.push(suspectTurn)
-        suspectState.currentMood = newMood
-        updateSession(sessionId, {
-          suspects: { ...session.suspects, [suspectId]: suspectState },
-        })
-        inFlight.delete(sessionId)
+        // Send mood as a trailing SSE comment so the client can update state
+        const moodTag = `\n\n[MOOD:${newMood}]`
+        controller.enqueue(new TextEncoder().encode(moodTag))
       },
     })
 
-    // Wrap the piped stream to ensure inFlight is always cleaned up, even on stream error
     const responseStream = stream.pipeThrough(transformStream)
-    const guardedStream = new ReadableStream<Uint8Array>({
-      async start(controller) {
-        const reader = responseStream.getReader()
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-            controller.enqueue(value)
-          }
-          controller.close()
-        } catch (err) {
-          inFlight.delete(sessionId)
-          controller.error(err)
-        }
-      },
-    })
 
-    return new Response(guardedStream, {
+    return new Response(responseStream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "X-Suspect-Id": suspectId,
-        "X-Session-Id": sessionId,
         "Transfer-Encoding": "chunked",
       },
     })
   } catch (err) {
-    inFlight.delete(sessionId)
     const errMsg = (err as Error).message ?? ""
     const isRateLimit = errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("Too Many Requests")
     console.error("Orchestrator error:", errMsg.slice(0, 200))

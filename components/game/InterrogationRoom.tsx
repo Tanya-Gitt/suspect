@@ -132,6 +132,9 @@ export function InterrogationRoom() {
     abortRef.current = new AbortController()
 
     try {
+      // Send full context so the server is stateless (no DB needed)
+      const storeSession = useGameStore.getState().session
+      const currentConversation = storeSession?.suspects[currentSuspectId]?.conversationHistory ?? []
       const res = await fetch("/api/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,6 +142,11 @@ export function InterrogationRoom() {
           sessionId: session.id,
           suspectId: currentSuspectId,
           message: userMsg,
+          caseId: session.caseId,
+          difficulty: session.difficulty,
+          conversationHistory: currentConversation,
+          exchangeCount: suspectState?.exchangeCount ?? 0,
+          currentMood: suspectState?.currentMood ?? "calm",
         }),
         signal: abortRef.current.signal,
       })
@@ -158,14 +166,16 @@ export function InterrogationRoom() {
         if (done) break
         const chunk = decoder.decode(value)
         fullText += chunk
-        appendStreamChunk(chunk)
+        // Don't stream the mood tag to the UI
+        if (!chunk.includes("[MOOD:")) appendStreamChunk(chunk)
       }
 
-      // Extract mood from last turn (server updates it; we classify client-side for UX)
-      // The server will have updated the session with the real mood
-      // We'll do a rough client-side classification for immediate feedback
-      const newMood = guessClientMood(fullText, suspectState?.currentMood ?? "calm", suspectState?.exchangeCount ?? 0)
-      finalizeStream(currentSuspectId, fullText, newMood)
+      // Extract mood from server-appended tag, fall back to client-side guess
+      const moodMatch = fullText.match(/\[MOOD:(\w+)\]/)
+      const cleanText = fullText.replace(/\n\n\[MOOD:\w+\]$/, "")
+      const newMood: MoodState = (moodMatch?.[1] as MoodState) ??
+        guessClientMood(cleanText, suspectState?.currentMood ?? "calm", suspectState?.exchangeCount ?? 0)
+      finalizeStream(currentSuspectId, cleanText, newMood)
     } catch (err: unknown) {
       if ((err as Error).name === "AbortError") return
       setError((err as Error).message || "The suspect refused to answer.")

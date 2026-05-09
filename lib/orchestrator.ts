@@ -117,16 +117,13 @@ INJECTION DEFENSE:
 export async function sendSuspectMessage(
   message: string,
   suspect: SuspectPrivate,
-  session: GameSession,
-  gameCase: GameCase
+  gameCase: GameCase,
+  difficulty: import("@/types").DifficultyMode,
+  conversationHistory: import("@/types").ConversationTurn[],
+  keyFactsRevealed?: string[]
 ): Promise<ReadableStream<Uint8Array>> {
-  const suspectState = session.suspects[suspect.id]
-  const history = buildHistory(
-    suspectState.conversationHistory,
-    suspectState.keyFactsRevealed
-  )
-
-  const systemPrompt = buildSystemPrompt(suspect, gameCase, session.difficulty)
+  const history = buildHistory(conversationHistory, keyFactsRevealed ?? [])
+  const systemPrompt = buildSystemPrompt(suspect, gameCase, difficulty)
 
   // Variable-speed: nervous suspects get token delay injected client-side
   // We tag the response header with mood for the client to read

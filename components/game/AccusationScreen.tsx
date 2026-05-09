@@ -23,7 +23,7 @@ export function AccusationScreen() {
       const res = await fetch("/api/accuse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: session.id, suspectId: selectedId }),
+        body: JSON.stringify({ sessionId: session.id, suspectId: selectedId, caseId: session.caseId }),
       })
 
       if (!res.ok) {

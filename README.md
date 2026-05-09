@@ -18,7 +18,7 @@
 [![Gemini](https://img.shields.io/badge/Powered%20by-Gemini%20AI-4285F4?style=flat-square&logo=google&logoColor=white)](https://aistudio.google.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-C9973E?style=flat-square)](LICENSE)
 
-[**▶ Live Demo**](#getting-started) · [**📖 Add a Case**](#adding-a-new-case) · [**⭐ Star this repo**](https://github.com/Tanya-Gitt/suspect/stargazers)
+[**▶ Play Live**](https://suspect-omega.vercel.app) · [**📖 Add a Case**](#adding-a-new-case) · [**⭐ Star this repo**](https://github.com/Tanya-Gitt/suspect/stargazers)
 
 </div>
 

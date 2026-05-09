@@ -140,11 +140,18 @@ export interface SendMessagePayload {
   sessionId: string
   suspectId: string
   message: string
+  // Stateless fields — sent by client so server needs no DB lookup
+  caseId: string
+  difficulty: DifficultyMode
+  conversationHistory: ConversationTurn[]
+  exchangeCount: number
+  currentMood: MoodState
 }
 
 export interface AccusePayload {
   sessionId: string
   suspectId: string
+  caseId: string   // sent by client so server needs no DB lookup
 }
 
 export interface AccuseResult {
