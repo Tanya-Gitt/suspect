@@ -235,7 +235,7 @@ export function MainMenu() {
   const modeHint    = mode === "slots" ? "click or press key"  : mode === "reset_confirm" ? "this cannot be undone" : "click or press key"
 
   return (
-    <div className="h-dvh overflow-hidden flex flex-col relative" style={{ background: "#050403" }}>
+    <div className="h-dvh w-screen overflow-hidden flex flex-col relative" style={{ background: "#050403" }}>
 
       {/* CRT scanlines */}
       <div className="absolute inset-0 pointer-events-none z-20" style={{
@@ -298,7 +298,7 @@ export function MainMenu() {
           {/* Title */}
           <h1 style={{
             fontFamily: "var(--font-orbitron)", fontWeight: 900,
-            fontSize: "clamp(2.8rem, 6vw, 5rem)", letterSpacing: "0.1em",
+            fontSize: "clamp(2rem, 4vw, 3.4rem)", letterSpacing: "0.1em",
             color: "#EDE5D5", lineHeight: 1,
             textShadow: "0 0 50px rgba(201,151,62,0.25), 0 0 100px rgba(201,151,62,0.08)",
           }}>
