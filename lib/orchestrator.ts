@@ -10,6 +10,35 @@ import {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
+// Model waterfall — highest free-tier RPM first.
+// gemini-2.0-flash-lite: 30 RPM free
+// gemini-1.5-flash-8b:   15 RPM free (fallback)
+// gemini-1.5-flash:      15 RPM free (last resort)
+const MODEL_WATERFALL = [
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash-8b",
+  "gemini-1.5-flash",
+] as const
+
+async function tryWithFallback<T>(
+  fn: (modelName: string) => Promise<T>
+): Promise<T> {
+  let lastErr: unknown
+  for (const modelName of MODEL_WATERFALL) {
+    try {
+      return await fn(modelName)
+    } catch (err) {
+      const msg = (err as Error).message ?? ""
+      const isRateLimit = msg.includes("429") || msg.includes("quota") || msg.includes("Too Many Requests")
+      if (!isRateLimit) throw err // non-rate-limit error — don't try next model
+      lastErr = err
+      // Brief pause before trying next model
+      await new Promise((r) => setTimeout(r, 600))
+    }
+  }
+  throw lastErr
+}
+
 // ─── Evasiveness prompts per difficulty ──────────────────────────────────────
 const EVASIVENESS_INSTRUCTIONS: Record<DifficultyMode, string> = {
   rookie: `You are willing to share information when asked directly. You avoid topics related to your secrets but you do not actively lie about them — you deflect briefly then move on. If the player asks directly about your alibi or whereabouts, you answer clearly. Clues come naturally in conversation.`,
@@ -124,20 +153,17 @@ export async function sendSuspectMessage(
 ): Promise<ReadableStream<Uint8Array>> {
   const history = buildHistory(conversationHistory, keyFactsRevealed ?? [])
   const systemPrompt = buildSystemPrompt(suspect, gameCase, difficulty)
-
-  // Variable-speed: nervous suspects get token delay injected client-side
-  // We tag the response header with mood for the client to read
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    systemInstruction: systemPrompt,
-  })
-
-  const chat = model.startChat({ history })
-
-  // Injection-safe wrapper
   const safeMessage = `<player_question>\n${message}\n</player_question>`
 
-  const result = await chat.sendMessageStream(safeMessage)
+  // Try models in waterfall order (highest free RPM first)
+  const result = await tryWithFallback(async (modelName) => {
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      systemInstruction: systemPrompt,
+    })
+    const chat = model.startChat({ history })
+    return chat.sendMessageStream(safeMessage)
+  })
 
   // Convert Gemini stream → web ReadableStream
   const encoder = new TextEncoder()
