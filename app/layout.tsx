@@ -21,6 +21,19 @@ export const metadata: Metadata = {
   description:
     "An AI-powered noir detective mystery. Interrogate suspects. Uncover lies. Find the killer.",
   keywords: ["detective game", "ai game", "mystery", "noir", "interrogation"],
+  themeColor: "#0A0907",
+  openGraph: {
+    title: "SUSPECT — AI Interrogation Game",
+    description: "Every suspect lies. Only one killed. Can you find them?",
+    url: "https://suspect-omega.vercel.app",
+    siteName: "SUSPECT",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SUSPECT — AI Interrogation Game",
+    description: "Every suspect lies. Only one killed. Can you find them?",
+  },
 }
 
 export default function RootLayout({

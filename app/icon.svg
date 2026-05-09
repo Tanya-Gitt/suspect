@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Dark background -->
+  <rect width="32" height="32" rx="6" fill="#0A0907"/>
+  <!-- Magnifying glass circle -->
+  <circle cx="13" cy="13" r="7" stroke="#C9973E" stroke-width="2.5" fill="none"/>
+  <!-- Inner highlight -->
+  <circle cx="13" cy="13" r="4" fill="#C9973E" fill-opacity="0.12"/>
+  <!-- Handle -->
+  <line x1="18.5" y1="18.5" x2="26" y2="26" stroke="#C9973E" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Blood red dot — the murder detail -->
+  <circle cx="13" cy="13" r="1.8" fill="#B91C1C"/>
+</svg>
