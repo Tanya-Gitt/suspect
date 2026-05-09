@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Orbitron, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 
@@ -16,12 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["300", "400", "500", "600"],
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0A0907",
+}
+
 export const metadata: Metadata = {
   title: "SUSPECT — AI Interrogation Game",
   description:
     "An AI-powered noir detective mystery. Interrogate suspects. Uncover lies. Find the killer.",
   keywords: ["detective game", "ai game", "mystery", "noir", "interrogation"],
-  themeColor: "#0A0907",
   openGraph: {
     title: "SUSPECT — AI Interrogation Game",
     description: "Every suspect lies. Only one killed. Can you find them?",
